@@ -3,30 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSA — Luau Obfuscator Playground</title>
+<title>CSA — Luau Obfuscator</title>
 <style>
-:root { color-scheme: dark; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px; }
-.hero { text-align: center; margin-bottom: 24px; }
-.hero h1 { font-size: 2rem; }
-.hero h1 .accent { color: #58a6ff; }
-.hero p { color: #8b949e; margin-top: 6px; }
-.killline { display: inline-block; margin-top: 10px; padding: 6px 16px; border: 1px solid #f85149; border-radius: 20px; color: #ff7b72; font-weight: 600; font-size: 0.9rem; }
-.grid { display: flex; gap: 14px; width: 100%; max-width: 1000px; flex-wrap: wrap; }
-.pane { flex: 1; min-width: 320px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; }
-.pane h2 { font-size: 0.85rem; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-textarea { width: 100%; height: 260px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; resize: vertical; line-height: 1.5; }
-.controls { display: flex; gap: 10px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
-select, button { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
-button.primary { background: #238636; color: #fff; border-color: #2ea043; font-weight: 600; }
-button.secondary { background: #1f6feb; color: #fff; border-color: #388bfd; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 30%, #fdf2f8 70%, #eef7ff 100%);
+  background-attachment: fixed;
+  color: #1f2430;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px;
+}
+body::before {
+  content: "";
+  position: fixed;
+  top: -20%; left: -10%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(99,102,241,0.18), transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -15%; right: -10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(236,72,153,0.14), transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero { text-align: center; margin-bottom: 28px; z-index: 1; }
+.hero h1 { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.5px; color: #1a1d2e; }
+.hero h1 .accent {
+  background: linear-gradient(90deg, #6366f1, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p { color: #5b6472; margin-top: 8px; font-size: 1rem; }
+.killline {
+  display: inline-block; margin-top: 14px; padding: 8px 20px;
+  border-radius: 999px; font-weight: 700; font-size: 0.85rem;
+  color: #e11d48;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(225,29,72,0.2);
+  box-shadow: 0 8px 24px rgba(225,29,72,0.08);
+}
+.grid { display: flex; gap: 20px; width: 100%; max-width: 1080px; flex-wrap: wrap; z-index: 1; }
+.pane {
+  flex: 1; min-width: 340px;
+  background: rgba(255,255,255,0.50);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 16px 48px rgba(31,38,75,0.10);
+}
+.pane h2 {
+  font-size: 0.78rem; font-weight: 700; color: #8a90a3;
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+}
+textarea {
+  width: 100%; height: 280px;
+  background: rgba(255,255,255,0.65);
+  color: #232838;
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 18px;
+  padding: 16px;
+  font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  font-size: 13px; line-height: 1.6;
+  resize: vertical; outline: none;
+  box-shadow: inset 0 2px 8px rgba(31,38,75,0.04);
+  transition: border-color 0.2s;
+}
+textarea:focus { border-color: #6366f1; }
+.controls { display: flex; gap: 12px; align-items: center; margin: 20px 0; flex-wrap: wrap; z-index: 1; }
+select, button {
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 999px; padding: 10px 20px; font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #232838;
+  box-shadow: 0 4px 16px rgba(31,38,75,0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+select:hover, button:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(31,38,75,0.12); }
+button.primary {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  color: #fff; border: none;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+}
+button.secondary {
+  background: rgba(255,255,255,0.7);
+  color: #4f46e5; border: 1px solid rgba(99,102,241,0.25);
+}
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-.stats { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; font-size: 13px; color: #8b949e; }
-.stats b { color: #e6edf3; }
-.note { margin-top: 20px; max-width: 1000px; color: #8b949e; font-size: 13px; text-align: center; }
-.note a { color: #58a6ff; }
-.loading { color: #d29922; font-weight: 600; }
+.stats {
+  display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap;
+  font-size: 13px; color: #5b6472;
+  background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px 16px;
+  backdrop-filter: blur(12px);
+}
+.stats b { color: #232838; }
+.note { margin-top: 24px; max-width: 1080px; color: #5b6472; font-size: 13px; text-align: center; z-index: 1; }
+.note a { color: #4f46e5; font-weight: 600; }
+.loading { color: #d97706; font-weight: 700; }
+#status { font-size: 14px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -43,13 +133,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   </div>
   <div class="pane">
     <h2>Obfuscated output</h2>
-    <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8b949e;"></textarea>
+    <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8a90a3;"></textarea>
     <div class="stats" id="stats" style="display:none;">
       <span>Tier: <b id="stat-tier">-</b></span>
       <span>Size: <b id="stat-size">-</b></span>
       <span>Ratio: <b id="stat-ratio">-</b></span>
       <span>Time: <b id="stat-time">-</b></span>
-      <span>Plaintext leakage: <b id="stat-leak" style="color:#3fb950;">0</b></span>
+      <span>Plaintext leakage: <b id="stat-leak" style="color:#059669;">0</b></span>
     </div>
   </div>
 </div>
@@ -76,28 +166,17 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 <script>
 const go = new Go();
 let ready = false;
-
 function pollReady() {
-  if (typeof csaObfuscate === 'function') {
-    ready = true;
-    document.getElementById("status").innerHTML = '<span style="color:#3fb950;">Ready</span>';
-    return;
-  }
+  if (typeof csaObfuscate === 'function') { ready = true; document.getElementById("status").innerHTML = '<span style="color:#059669;">Ready</span>'; return; }
   setTimeout(pollReady, 100);
 }
-
 function instantiate(bytes) {
-  return WebAssembly.instantiate(bytes, go.importObject).then(result => {
-    go.run(result.instance);  // do NOT await: Go main() blocks forever via select{}
-    pollReady();
-  });
+  return WebAssembly.instantiate(bytes, go.importObject).then(result => { go.run(result.instance); pollReady(); });
 }
-
 WebAssembly.instantiateStreaming(fetch("./csa.wasm"), go.importObject)
   .then(result => { go.run(result.instance); pollReady(); })
   .catch(() => fetch("./csa.wasm").then(r => r.arrayBuffer()).then(instantiate))
   .catch(e => { document.getElementById("status").innerHTML = '<span class="loading">WASM load failed: ' + e + '</span>'; });
-
 document.getElementById("btn").addEventListener("click", () => {
   if (!ready) { document.getElementById("status").innerHTML = '<span class="loading">Loading…</span>'; return; }
   const src = document.getElementById("input").value;
@@ -107,9 +186,9 @@ document.getElementById("btn").addEventListener("click", () => {
   setTimeout(() => {
     try {
       const out = csaObfuscate(src, tier);
-      if (out.error) { status.innerHTML = '<span style="color:#f85149;">' + out.error + '</span>'; return; }
+      if (out.error) { status.innerHTML = '<span style="color:#e11d48;">' + out.error + '</span>'; return; }
       document.getElementById("output").value = out.result;
-      document.getElementById("output").style.color = '#e6edf3';
+      document.getElementById("output").style.color = '#232838';
       const leak = (out.result.match(/loadstring|print|hello|world/g) || []).length;
       document.getElementById("stat-tier").textContent = out.tier;
       document.getElementById("stat-size").textContent = out.outputBytes + " bytes";
@@ -118,38 +197,23 @@ document.getElementById("btn").addEventListener("click", () => {
       document.getElementById("stat-leak").textContent = leak;
       document.getElementById("stats").style.display = 'flex';
       document.getElementById("download").disabled = false;
-      status.innerHTML = '<span style="color:#3fb950;font-weight:600;">✓ Done</span>';
-    } catch (e) {
-      status.innerHTML = '<span style="color:#f85149;">' + e + '</span>';
-    }
+      status.innerHTML = '<span style="color:#059669;font-weight:700;">✓ Done</span>';
+    } catch (e) { status.innerHTML = '<span style="color:#e11d48;">' + e + '</span>'; }
   }, 50);
 });
-
-// Upload button
 const fileInput = document.getElementById("fileInput");
 document.getElementById("upload").addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
-  const f = fileInput.files[0];
-  if (!f) return;
+  const f = fileInput.files[0]; if (!f) return;
   const reader = new FileReader();
-  reader.onload = () => {
-    document.getElementById("input").value = reader.result;
-    document.getElementById("status").innerHTML = '<span style="color:#58a6ff;">Loaded ' + f.name + '</span>';
-  };
+  reader.onload = () => { document.getElementById("input").value = reader.result; document.getElementById("status").innerHTML = '<span style="color:#4f46e5;">Loaded ' + f.name + '</span>'; };
   reader.readAsText(f);
 });
-
-// Download button
 document.getElementById("download").addEventListener("click", () => {
-  const content = document.getElementById("output").value;
-  if (!content) return;
+  const content = document.getElementById("output").value; if (!content) return;
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'obfuscated.lua';
-  a.click();
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = 'obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
 });
 </script>
 </body>
