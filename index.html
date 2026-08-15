@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSA — Luau Obfuscator Playground</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px; }
+.hero { text-align: center; margin-bottom: 24px; }
+.hero h1 { font-size: 2rem; }
+.hero h1 .accent { color: #58a6ff; }
+.hero p { color: #8b949e; margin-top: 6px; }
+.killline { display: inline-block; margin-top: 10px; padding: 6px 16px; border: 1px solid #f85149; border-radius: 20px; color: #ff7b72; font-weight: 600; font-size: 0.9rem; }
+.grid { display: flex; gap: 14px; width: 100%; max-width: 1000px; flex-wrap: wrap; }
+.pane { flex: 1; min-width: 320px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; }
+.pane h2 { font-size: 0.85rem; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+textarea { width: 100%; height: 260px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; resize: vertical; line-height: 1.5; }
+.controls { display: flex; gap: 10px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+select, button { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+button.primary { background: #238636; color: #fff; border-color: #2ea043; font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.stats { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; font-size: 13px; color: #8b949e; }
+.stats b { color: #e6edf3; }
+.note { margin-top: 20px; max-width: 1000px; color: #8b949e; font-size: 13px; text-align: center; }
+.note a { color: #58a6ff; }
+.loading { color: #d29922; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1><span class="accent">CSA</span> — Luau Obfuscator</h1>
+  <p>Paste Luau source, get a protected build. Runs entirely in your browser.</p>
+  <span class="killline">⚔ The kill line: weaker at any price gets cut</span>
+</div>
+
+<div class="grid">
+  <div class="pane">
+    <h2>Input (Luau)</h2>
+    <textarea id="input">print("hello world")</textarea>
+  </div>
+  <div class="pane">
+    <h2>Obfuscated output</h2>
+    <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8b949e;"></textarea>
+    <div class="stats" id="stats" style="display:none;">
+      <span>Tier: <b id="stat-tier">-</b></span>
+      <span>Size: <b id="stat-size">-</b></span>
+      <span>Ratio: <b id="stat-ratio">-</b></span>
+      <span>Time: <b id="stat-time">-</b></span>
+      <span>Plaintext leakage: <b id="stat-leak" style="color:#3fb950;">0</b></span>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="primary" id="btn">Obfuscate</button>
+  <select id="tier">
+    <option value="max">max 🔥</option>
+    <option value="standard">standard 🛡</option>
+    <option value="lite">lite ⚡</option>
+  </select>
+  <span id="status"></span>
+</div>
+
+<div class="note">
+  No server — the obfuscator compiles to WebAssembly and runs locally in your browser.
+  <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank">Download the CLI →</a>
+</div>
+
+<script src="./wasm_exec.js"></script>
+<script>
+const go = new Go();
+let ready = false;
+
+function instantiate(bytes) {
+  return WebAssembly.instantiate(bytes, go.importObject).then(result => {
+    go.run(result.instance).then(() => { ready = true; });
+  });
+}
+
+WebAssembly.instantiateStreaming(fetch("./csa.wasm"), go.importObject)
+  .then(result => { go.run(result.instance).then(() => { ready = true; }); })
+  .catch(() => fetch("./csa.wasm").then(r => r.arrayBuffer()).then(instantiate))
+  .catch(e => { document.getElementById("status").innerHTML = '<span class="loading">WASM load failed: ' + e + '</span>'; });
+
+document.getElementById("btn").addEventListener("click", () => {
+  if (!ready) { document.getElementById("status").innerHTML = '<span class="loading">Loading…</span>'; return; }
+  const src = document.getElementById("input").value;
+  const tier = document.getElementById("tier").value;
+  const status = document.getElementById("status");
+  status.innerHTML = '<span class="loading">Obfuscating…</span>';
+  setTimeout(() => {
+    try {
+      const out = csaObfuscate(src, tier);
+      if (out.error) { status.innerHTML = '<span style="color:#f85149;">' + out.error + '</span>'; return; }
+      document.getElementById("output").value = out.result;
+      document.getElementById("output").style.color = '#e6edf3';
+      const leak = (out.result.match(/loadstring|print|hello|world/g) || []).length;
+      document.getElementById("stat-tier").textContent = out.tier;
+      document.getElementById("stat-size").textContent = out.outputBytes + " bytes";
+      document.getElementById("stat-ratio").textContent = (out.outputBytes / out.inputBytes).toFixed(1) + "x";
+      document.getElementById("stat-time").textContent = out.durationMs + " ms";
+      document.getElementById("stat-leak").textContent = leak;
+      document.getElementById("stats").style.display = 'flex';
+      status.innerHTML = '<span style="color:#3fb950;font-weight:600;">✓ Done</span>';
+    } catch (e) {
+      status.innerHTML = '<span style="color:#f85149;">' + e + '</span>';
+    }
+  }, 50);
+});
+</script>
+</body>
+</html>
