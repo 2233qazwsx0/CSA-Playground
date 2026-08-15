@@ -6,82 +6,45 @@
 <title>CSA — Luau Obfuscator</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 25%, #fdf2f8 55%, #ecfeff 100%);
-  background-attachment: fixed;
-  color: #1f2430;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 48px 20px;
-  overflow-x: hidden;
-}
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 25%, #fdf2f8 55%, #ecfeff 100%); background-attachment: fixed; color: #1f2430; display: flex; flex-direction: column; align-items: center; padding: 48px 20px; overflow-x: hidden; }
 body::before { content:""; position:fixed; top:-15%; left:-8%; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle, rgba(99,102,241,0.22), transparent 62%); pointer-events:none; }
 body::after { content:""; position:fixed; bottom:-12%; right:-10%; width:640px; height:640px; border-radius:50%; background:radial-gradient(circle, rgba(236,72,153,0.18), transparent 60%); pointer-events:none; }
+.lang-bar { position:fixed; top:18px; right:20px; z-index:10; display:flex; gap:6px; }
+.lang-bar button { border:1px solid rgba(255,255,255,0.8); border-radius:999px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); color:#232838; }
+.lang-bar button.active { background:linear-gradient(90deg,#6366f1,#8b5cf6); color:#fff; border:none; }
 .hero { text-align:center; margin-bottom:32px; z-index:1; }
 .hero h1 { font-size:3rem; font-weight:900; letter-spacing:-1px; color:#11142a; }
 .hero h1 .accent { background:linear-gradient(90deg,#6366f1,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 .hero .sub { color:#5b6472; margin-top:10px; font-size:1.1rem; }
-.killline {
-  display:inline-block; margin-top:16px; padding:10px 26px; border-radius:999px; font-weight:800; font-size:0.9rem;
-  color:#be123c; background:rgba(255,255,255,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-  border:1px solid rgba(190,18,60,0.25); box-shadow:0 10px 30px rgba(190,18,60,0.12);
-}
-.kill-panel {
-  width:100%; max-width:1080px; margin-bottom:28px; z-index:1;
-  background:rgba(255,255,255,0.55); backdrop-filter:blur(24px) saturate(150%); -webkit-backdrop-filter:blur(24px) saturate(150%);
-  border:1px solid rgba(255,255,255,0.8); border-radius:32px; padding:28px;
-  box-shadow:0 20px 60px rgba(31,38,75,0.12);
-}
+.killline { display:inline-block; margin-top:16px; padding:10px 26px; border-radius:999px; font-weight:800; font-size:0.9rem; color:#be123c; background:rgba(255,255,255,0.6); backdrop-filter:blur(20px); border:1px solid rgba(190,18,60,0.25); box-shadow:0 10px 30px rgba(190,18,60,0.12); }
+.kill-panel { width:100%; max-width:1080px; margin-bottom:28px; z-index:1; background:rgba(255,255,255,0.55); backdrop-filter:blur(24px) saturate(150%); border:1px solid rgba(255,255,255,0.8); border-radius:32px; padding:28px; box-shadow:0 20px 60px rgba(31,38,75,0.12); }
 .kill-panel h2 { font-size:0.8rem; letter-spacing:2px; color:#8a90a3; text-transform:uppercase; margin-bottom:18px; font-weight:800; }
 .kill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
-.kill-card {
-  text-align:center; padding:18px 12px; border-radius:22px;
-  background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.9);
-  box-shadow:0 8px 20px rgba(31,38,75,0.06); transition:transform 0.2s, box-shadow 0.2s;
-}
+.kill-card { text-align:center; padding:18px 12px; border-radius:22px; background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.9); box-shadow:0 8px 20px rgba(31,38,75,0.06); transition:transform 0.2s, box-shadow 0.2s; }
 .kill-card:hover { transform:translateY(-4px); box-shadow:0 16px 36px rgba(31,38,75,0.14); }
 .kill-card .name { font-size:1rem; font-weight:800; color:#232838; }
 .kill-card .layer { font-size:0.72rem; color:#8a90a3; margin-top:6px; text-transform:uppercase; letter-spacing:1px; }
 .grid { display:flex; gap:20px; width:100%; max-width:1080px; flex-wrap:wrap; z-index:1; }
-.pane {
-  flex:1; min-width:340px; background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%);
-  border:1px solid rgba(255,255,255,0.7); border-radius:28px; padding:24px; box-shadow:0 16px 48px rgba(31,38,75,0.10);
-}
+.pane { flex:1; min-width:340px; background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); border:1px solid rgba(255,255,255,0.7); border-radius:28px; padding:24px; box-shadow:0 16px 48px rgba(31,38,75,0.10); }
 .pane h2 { font-size:0.78rem; font-weight:800; color:#8a90a3; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px; }
-textarea {
-  width:100%; height:280px; background:rgba(255,255,255,0.7); color:#232838; border:1px solid rgba(255,255,255,0.8);
-  border-radius:18px; padding:16px; font-family:"SF Mono","JetBrains Mono",monospace; font-size:13px; line-height:1.6;
-  resize:vertical; outline:none; box-shadow:inset 0 2px 8px rgba(31,38,75,0.04); transition:border-color 0.2s;
-}
+textarea { width:100%; height:280px; background:rgba(255,255,255,0.7); color:#232838; border:1px solid rgba(255,255,255,0.8); border-radius:18px; padding:16px; font-family:"SF Mono","JetBrains Mono",monospace; font-size:13px; line-height:1.6; resize:vertical; outline:none; box-shadow:inset 0 2px 8px rgba(31,38,75,0.04); transition:border-color 0.2s; }
 textarea:focus { border-color:#6366f1; }
 .controls { display:flex; gap:12px; align-items:center; margin:20px 0; flex-wrap:wrap; z-index:1; }
-select, button {
-  border:1px solid rgba(255,255,255,0.8); border-radius:999px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer;
-  background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#232838;
-  box-shadow:0 4px 16px rgba(31,38,75,0.06); transition:transform 0.15s, box-shadow 0.15s;
-}
+select, button { border:1px solid rgba(255,255,255,0.8); border-radius:999px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); color:#232838; box-shadow:0 4px 16px rgba(31,38,75,0.06); transition:transform 0.15s, box-shadow 0.15s; }
 select:hover, button:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(31,38,75,0.12); }
 button.primary { background:linear-gradient(90deg,#6366f1,#8b5cf6); color:#fff; border:none; box-shadow:0 8px 24px rgba(99,102,241,0.35); }
 button.secondary { background:rgba(255,255,255,0.7); color:#4f46e5; border:1px solid rgba(99,102,241,0.25); }
 button:disabled { opacity:0.5; cursor:not-allowed; }
 .stats { display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:13px; color:#5b6472; background:rgba(255,255,255,0.5); border-radius:16px; padding:12px 16px; backdrop-filter:blur(12px); }
 .stats b { color:#232838; }
-.about {
-  width:100%; max-width:1080px; margin-top:36px; z-index:1;
-  background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%);
-  border:1px solid rgba(255,255,255,0.7); border-radius:32px; padding:36px;
-  box-shadow:0 20px 60px rgba(31,38,75,0.10);
-}
+.about { width:100%; max-width:1080px; margin-top:36px; z-index:1; background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); border:1px solid rgba(255,255,255,0.7); border-radius:32px; padding:36px; box-shadow:0 20px 60px rgba(31,38,75,0.10); }
 .about h2 { font-size:1.5rem; font-weight:900; color:#11142a; margin-bottom:18px; }
 .about h3 { font-size:1.05rem; font-weight:800; color:#4f46e5; margin:22px 0 8px; }
 .about p { color:#4b5563; line-height:1.8; font-size:0.96rem; }
 .about ul { margin:10px 0 10px 20px; color:#4b5563; line-height:1.9; font-size:0.95rem; }
 .about li { margin-bottom:6px; }
 .about .feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:16px; }
-.about .feature {
-  padding:18px; border-radius:20px; background:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.8);
-}
+.about .feature { padding:18px; border-radius:20px; background:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.8); }
 .about .feature b { display:block; font-size:0.95rem; color:#232838; margin-bottom:6px; }
 .about .feature span { font-size:0.85rem; color:#6b7280; line-height:1.6; }
 .note { margin-top:24px; max-width:1080px; color:#5b6472; font-size:13px; text-align:center; z-index:1; }
@@ -91,93 +54,150 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
+<div class="lang-bar">
+  <button id="lang-en" class="active">EN</button>
+  <button id="lang-zh">中文</button>
+</div>
+
 <div class="hero">
-  <h1><span class="accent">CSA</span> — Luau Obfuscator</h1>
-  <p class="sub">The kill line. Measured, not marketing.</p>
-  <span class="killline">⚔ Anything weaker at any price gets cut</span>
+  <h1><span class="accent">CSA</span> — <span data-i18n="hero_title">Luau Obfuscator</span></h1>
+  <p class="sub" data-i18n="hero_sub">The kill line. Measured, not marketing.</p>
+  <span class="killline" data-i18n="hero_kill">⚔ Anything weaker at any price gets cut</span>
 </div>
 
 <div class="kill-panel">
-  <h2>CUT BY THE KILL LINE</h2>
+  <h2 data-i18n="cut_title">CUT BY THE KILL LINE</h2>
   <div class="kill-grid">
-    <div class="kill-card"><div class="name">goofyscator V9</div><div class="layer">3× loadstring leak · in-house XOR</div></div>
-    <div class="kill-card"><div class="name">Prometheus</div><div class="layer">custom PRNG · incomplete Luau</div></div>
-    <div class="kill-card"><div class="name">Ironbrew</div><div class="layer">cracked · legacy VM</div></div>
-    <div class="kill-card"><div class="name">Hercules</div><div class="layer">outdated bytecode</div></div>
-    <div class="kill-card"><div class="name">MoonSec</div><div class="layer">public deobfuscator exists</div></div>
-    <div class="kill-card"><div class="name">AztupBrew</div><div class="layer">toy obfuscation</div></div>
+    <div class="kill-card"><div class="name">goofyscator V9</div><div class="layer" data-i18n="cut_gofy">3× loadstring leak · in-house XOR</div></div>
+    <div class="kill-card"><div class="name">Prometheus</div><div class="layer" data-i18n="cut_prom">custom PRNG · incomplete Luau</div></div>
+    <div class="kill-card"><div class="name">Ironbrew</div><div class="layer" data-i18n="cut_iron">cracked · legacy VM</div></div>
+    <div class="kill-card"><div class="name">Hercules</div><div class="layer" data-i18n="cut_herc">outdated bytecode</div></div>
+    <div class="kill-card"><div class="name">MoonSec</div><div class="layer" data-i18n="cut_moon">public deobfuscator exists</div></div>
+    <div class="kill-card"><div class="name">AztupBrew</div><div class="layer" data-i18n="cut_azt">toy obfuscation</div></div>
   </div>
 </div>
 
 <div class="grid">
   <div class="pane">
-    <h2>Input (Luau)</h2>
+    <h2 data-i18n="input_label">Input (Luau)</h2>
     <textarea id="input">print("hello world")</textarea>
   </div>
   <div class="pane">
-    <h2>Obfuscated output</h2>
+    <h2 data-i18n="output_label">Obfuscated output</h2>
     <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8a90a3;"></textarea>
     <div class="stats" id="stats" style="display:none;">
-      <span>Tier: <b id="stat-tier">-</b></span>
-      <span>Size: <b id="stat-size">-</b></span>
-      <span>Ratio: <b id="stat-ratio">-</b></span>
-      <span>Time: <b id="stat-time">-</b></span>
-      <span>Plaintext leakage: <b id="stat-leak" style="color:#059669;">0</b></span>
+      <span><span data-i18n="st_tier">Tier</span>: <b id="stat-tier">-</b></span>
+      <span><span data-i18n="st_size">Size</span>: <b id="stat-size">-</b></span>
+      <span><span data-i18n="st_ratio">Ratio</span>: <b id="stat-ratio">-</b></span>
+      <span><span data-i18n="st_time">Time</span>: <b id="stat-time">-</b></span>
+      <span><span data-i18n="st_leak">Plaintext leakage</span>: <b id="stat-leak" style="color:#059669;">0</b></span>
     </div>
   </div>
 </div>
 
 <div class="controls">
-  <button class="primary" id="btn">Obfuscate</button>
+  <button class="primary" id="btn" data-i18n="btn_obf">Obfuscate</button>
   <select id="tier">
     <option value="max">max 🔥</option>
     <option value="standard">standard 🛡</option>
     <option value="lite">lite ⚡</option>
   </select>
-  <button class="secondary" id="upload">⬆ Upload</button>
+  <button class="secondary" id="upload" data-i18n="btn_up">⬆ Upload</button>
   <input type="file" id="fileInput" accept=".lua,.luau,.txt" style="display:none;">
-  <button class="secondary" id="download" disabled>⬇ Download .lua</button>
+  <button class="secondary" id="download" disabled data-i18n="btn_dl">⬇ Download .lua</button>
   <span id="status"></span>
 </div>
 
 <div class="about">
-  <h2>Why CSA draws the kill line</h2>
-  <p>Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
-
-  <h3>What CSA does</h3>
+  <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
+  <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
+  <h3 data-i18n="about_what">What CSA does</h3>
   <div class="feature-grid">
-    <div class="feature"><b>Virtualized bytecode</b><span>Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
-    <div class="feature"><b>Standard cipher, per-string keys</b><span>Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
-    <div class="feature"><b>Layered decryption</b><span>Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
-    <div class="feature"><b>Anti-dump &amp; anti-debug</b><span>The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
-    <div class="feature"><b>Identity gate</b><span>A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
-    <div class="feature"><b>Zero plaintext leakage</b><span>loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
+    <div class="feature"><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
+    <div class="feature"><b data-i18n="f2_t">Standard cipher, per-string keys</b><span data-i18n="f2_d">Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
+    <div class="feature"><b data-i18n="f3_t">Layered decryption</b><span data-i18n="f3_d">Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
+    <div class="feature"><b data-i18n="f4_t">Anti-dump &amp; anti-debug</b><span data-i18n="f4_d">The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
+    <div class="feature"><b data-i18n="f5_t">Identity gate</b><span data-i18n="f5_d">A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
+    <div class="feature"><b data-i18n="f6_t">Zero plaintext leakage</b><span data-i18n="f6_d">loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
   </div>
-
-  <h3>What CSA is honest about</h3>
+  <h3 data-i18n="about_honest">What CSA is honest about</h3>
   <ul>
-    <li>No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.</li>
-    <li>The strength comes from the VM and the cipher, not from a marketing page.</li>
-    <li>Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.</li>
+    <li data-i18n="hon1">No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.</li>
+    <li data-i18n="hon2">The strength comes from the VM and the cipher, not from a marketing page.</li>
+    <li data-i18n="hon3">Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.</li>
   </ul>
 </div>
 
 <div class="note">
-  No server — the obfuscator compiles to WebAssembly and runs locally in your browser.
-  <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank">Download the CLI →</a>
+  <span data-i18n="note1">No server — the obfuscator compiles to WebAssembly and runs locally in your browser.</span>
+  <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2">Download the CLI →</a>
 </div>
 
 <script src="./wasm_exec.js"></script>
 <script>
+const I18N = {
+  en: {
+    hero_title: "Luau Obfuscator", hero_sub: "The kill line. Measured, not marketing.", hero_kill: "⚔ Anything weaker at any price gets cut",
+    cut_title: "CUT BY THE KILL LINE",
+    cut_gofy: "3× loadstring leak · in-house XOR", cut_prom: "custom PRNG · incomplete Luau", cut_iron: "cracked · legacy VM", cut_herc: "outdated bytecode", cut_moon: "public deobfuscator exists", cut_azt: "toy obfuscation",
+    input_label: "Input (Luau)", output_label: "Obfuscated output",
+    st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Plaintext leakage",
+    btn_obf: "Obfuscate", btn_up: "⬆ Upload", btn_dl: "⬇ Download .lua",
+    about_title: "Why CSA draws the kill line",
+    about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
+    about_what: "What CSA does",
+    f1_t: "Virtualized bytecode", f1_d: "Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.",
+    f2_t: "Standard cipher, per-string keys", f2_d: "Speck-CTR with an independent 128-bit key per string. Not in-house XOR.",
+    f3_t: "Layered decryption", f3_d: "Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.",
+    f4_t: "Anti-dump & anti-debug", f4_d: "The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.",
+    f5_t: "Identity gate", f5_d: "A type-lock proof that silently corrupts the key if an attacker stubs or skips it.",
+    f6_t: "Zero plaintext leakage", f6_d: "loadstring, API names, strings — none appear in the output. Measured against real obfuscators.",
+    about_honest: "What CSA is honest about",
+    hon1: "No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.",
+    hon2: "The strength comes from the VM and the cipher, not from a marketing page.",
+    hon3: "Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.",
+    note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
+    note2: "Download the CLI →"
+  },
+  zh: {
+    hero_title: "Luau 混淆器", hero_sub: "斩杀线。用实测说话，不靠营销。", hero_kill: "⚔ 任何价格上比我弱的，全部出局",
+    cut_title: "被斩杀线淘汰的",
+    cut_gofy: "loadstring 泄漏×3 · 自制 XOR", cut_prom: "自制 PRNG · Luau 支持不完整", cut_iron: "已被破解 · 旧 VM", cut_herc: "过时字节码", cut_moon: "存在公开反混淆器", cut_azt: "玩具级混淆",
+    input_label: "输入（Luau）", output_label: "混淆输出",
+    st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "明文泄漏",
+    btn_obf: "混淆", btn_up: "⬆ 上传", btn_dl: "⬇ 下载 .lua",
+    about_title: "为什么 CSA 划出斩杀线",
+    about_p1: "大多数 Luau 混淆器只做到重命名变量和 XOR 字符串。CSA 走得更远——它把你的脚本编译成自包含的虚拟机，用标准密码算法为每个字符串配一把独立的密钥加密，再整体包进层层解密链，逆向者必须完整解开每一层，才能看到你的一行逻辑。",
+    about_what: "CSA 做了什么",
+    f1_t: "虚拟化字节码", f1_d: "你的逻辑跑在自定义 VM 上——不是原生 Luau，静态分析撞墙。",
+    f2_t: "标准密码 + 每串独立密钥", f2_d: "Speck-CTR，每个字符串独立 128 位密钥，不是自制 XOR。",
+    f3_t: "分层解密", f3_d: "压缩 → 分片 → 加密 → 完整性。破一层，其余仍守得住。",
+    f4_t: "反 dump & 反调试", f4_d: "产物运行时反击——string.dump 拦截、hook 指纹、内存擦除。",
+    f5_t: "身份门", f5_d: "类型锁死校验，攻击者 stub 或跳过就会静默污染密钥。",
+    f6_t: "零明文泄漏", f6_d: "loadstring、API 名、字符串——产物里都不出现，对照真实混淆器实测。",
+    about_honest: "CSA 诚实的声明",
+    hon1: "没有混淆器能让代码在数学上不可逆——CSA 把逆向成本抬高到不值当。",
+    hon2: "强度来自 VM 和密码学，不是营销页面。",
+    hon3: "上面每个数字都可复现——同一输入跑的对比，明文泄漏用 grep 数出来。",
+    note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
+    note2: "下载 CLI →"
+  }
+};
+let lang = 'en';
+function applyLang(l) {
+  lang = l;
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[l][k]) el.textContent = I18N[l][k]; });
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-zh').classList.toggle('active', l === 'zh');
+}
+document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
+document.getElementById('lang-zh').addEventListener('click', () => applyLang('zh'));
+applyLang('en');
+
 const go = new Go();
 let ready = false;
-function pollReady() {
-  if (typeof csaObfuscate === 'function') { ready = true; document.getElementById("status").innerHTML = '<span style="color:#059669;">Ready</span>'; return; }
-  setTimeout(pollReady, 100);
-}
-function instantiate(bytes) {
-  return WebAssembly.instantiate(bytes, go.importObject).then(result => { go.run(result.instance); pollReady(); });
-}
+function pollReady() { if (typeof csaObfuscate === 'function') { ready = true; document.getElementById("status").innerHTML = '<span style="color:#059669;">Ready</span>'; return; } setTimeout(pollReady, 100); }
+function instantiate(bytes) { return WebAssembly.instantiate(bytes, go.importObject).then(result => { go.run(result.instance); pollReady(); }); }
 WebAssembly.instantiateStreaming(fetch("./csa.wasm"), go.importObject)
   .then(result => { go.run(result.instance); pollReady(); })
   .catch(() => fetch("./csa.wasm").then(r => r.arrayBuffer()).then(instantiate))
@@ -187,7 +207,7 @@ document.getElementById("btn").addEventListener("click", () => {
   const src = document.getElementById("input").value;
   const tier = document.getElementById("tier").value;
   const status = document.getElementById("status");
-  status.innerHTML = '<span class="loading">Obfuscating…</span>';
+  status.innerHTML = '<span class="loading">' + (lang === 'zh' ? '混淆中…' : 'Obfuscating…') + '</span>';
   setTimeout(() => {
     try {
       const out = csaObfuscate(src, tier);
@@ -202,7 +222,7 @@ document.getElementById("btn").addEventListener("click", () => {
       document.getElementById("stat-leak").textContent = leak;
       document.getElementById("stats").style.display = 'flex';
       document.getElementById("download").disabled = false;
-      status.innerHTML = '<span style="color:#059669;font-weight:700;">✓ Done</span>';
+      status.innerHTML = '<span style="color:#059669;font-weight:700;">' + (lang === 'zh' ? '✓ 完成' : '✓ Done') + '</span>';
     } catch (e) { status.innerHTML = '<span style="color:#e11d48;">' + e + '</span>'; }
   }, 50);
 });
@@ -211,7 +231,7 @@ document.getElementById("upload").addEventListener("click", () => fileInput.clic
 fileInput.addEventListener("change", () => {
   const f = fileInput.files[0]; if (!f) return;
   const reader = new FileReader();
-  reader.onload = () => { document.getElementById("input").value = reader.result; document.getElementById("status").innerHTML = '<span style="color:#4f46e5;">Loaded ' + f.name + '</span>'; };
+  reader.onload = () => { document.getElementById("input").value = reader.result; document.getElementById("status").innerHTML = '<span style="color:#4f46e5;">' + (lang === 'zh' ? '已加载 ' : 'Loaded ') + f.name + '</span>'; };
   reader.readAsText(f);
 });
 document.getElementById("download").addEventListener("click", () => {
