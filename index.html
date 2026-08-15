@@ -51,6 +51,33 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 .note a { color:#4f46e5; font-weight:600; }
 .loading { color:#d97706; font-weight:700; }
 #status { font-size:14px; font-weight:600; }
+
+/* ── Liquid Glass (Apple WWDC25 style) ── */
+.liquid-filter { position:absolute; width:0; height:0; overflow:hidden; }
+.glass {
+  position: relative;
+  background: rgba(255,255,255,0.42);
+  backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow:
+    0 24px 64px rgba(31,38,75,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(255,255,255,0.35);
+}
+.glass::before {
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 45%),
+    radial-gradient(80% 60% at 10% 100%, rgba(99,102,241,0.10) 0%, transparent 55%),
+    radial-gradient(60% 50% at 90% 100%, rgba(236,72,153,0.10) 0%, transparent 55%);
+  mix-blend-mode: screen;
+}
+.glass::after {
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
 </style>
 </head>
 <body>
@@ -65,7 +92,7 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   <span class="killline" data-i18n="hero_kill">⚔ Anything weaker at any price gets cut</span>
 </div>
 
-<div class="kill-panel">
+<div class="kill-panel glass">
   <h2 data-i18n="cut_title">CUT BY THE KILL LINE</h2>
   <div class="kill-grid">
     <div class="kill-card"><div class="name">goofyscator V9</div><div class="layer" data-i18n="cut_gofy">3× loadstring leak · in-house XOR</div></div>
@@ -78,11 +105,11 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 </div>
 
 <div class="grid">
-  <div class="pane">
+  <div class="pane glass">
     <h2 data-i18n="input_label">Input (Luau)</h2>
     <textarea id="input">print("hello world")</textarea>
   </div>
-  <div class="pane">
+  <div class="pane glass">
     <h2 data-i18n="output_label">Obfuscated output</h2>
     <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8a90a3;"></textarea>
     <div class="stats" id="stats" style="display:none;">
@@ -108,7 +135,7 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   <span id="status"></span>
 </div>
 
-<div class="about">
+<div class="about glass">
   <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
   <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
   <h3 data-i18n="about_what">What CSA does</h3>
