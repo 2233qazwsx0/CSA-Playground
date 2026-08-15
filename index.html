@@ -7,123 +7,106 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 30%, #fdf2f8 70%, #eef7ff 100%);
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 25%, #fdf2f8 55%, #ecfeff 100%);
   background-attachment: fixed;
   color: #1f2430;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 16px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 20px;
+  overflow-x: hidden;
 }
-body::before {
-  content: "";
-  position: fixed;
-  top: -20%; left: -10%;
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(99,102,241,0.18), transparent 60%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-body::after {
-  content: "";
-  position: fixed;
-  bottom: -15%; right: -10%;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(236,72,153,0.14), transparent 60%);
-  border-radius: 50%;
-  pointer-events: none;
-}
-.hero { text-align: center; margin-bottom: 28px; z-index: 1; }
-.hero h1 { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.5px; color: #1a1d2e; }
-.hero h1 .accent {
-  background: linear-gradient(90deg, #6366f1, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.hero p { color: #5b6472; margin-top: 8px; font-size: 1rem; }
+body::before { content:""; position:fixed; top:-15%; left:-8%; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle, rgba(99,102,241,0.22), transparent 62%); pointer-events:none; }
+body::after { content:""; position:fixed; bottom:-12%; right:-10%; width:640px; height:640px; border-radius:50%; background:radial-gradient(circle, rgba(236,72,153,0.18), transparent 60%); pointer-events:none; }
+.hero { text-align:center; margin-bottom:32px; z-index:1; }
+.hero h1 { font-size:3rem; font-weight:900; letter-spacing:-1px; color:#11142a; }
+.hero h1 .accent { background:linear-gradient(90deg,#6366f1,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.hero .sub { color:#5b6472; margin-top:10px; font-size:1.1rem; }
 .killline {
-  display: inline-block; margin-top: 14px; padding: 8px 20px;
-  border-radius: 999px; font-weight: 700; font-size: 0.85rem;
-  color: #e11d48;
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(225,29,72,0.2);
-  box-shadow: 0 8px 24px rgba(225,29,72,0.08);
+  display:inline-block; margin-top:16px; padding:10px 26px; border-radius:999px; font-weight:800; font-size:0.9rem;
+  color:#be123c; background:rgba(255,255,255,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(190,18,60,0.25); box-shadow:0 10px 30px rgba(190,18,60,0.12);
 }
-.grid { display: flex; gap: 20px; width: 100%; max-width: 1080px; flex-wrap: wrap; z-index: 1; }
+.kill-panel {
+  width:100%; max-width:1080px; margin-bottom:28px; z-index:1;
+  background:rgba(255,255,255,0.55); backdrop-filter:blur(24px) saturate(150%); -webkit-backdrop-filter:blur(24px) saturate(150%);
+  border:1px solid rgba(255,255,255,0.8); border-radius:32px; padding:28px;
+  box-shadow:0 20px 60px rgba(31,38,75,0.12);
+}
+.kill-panel h2 { font-size:0.8rem; letter-spacing:2px; color:#8a90a3; text-transform:uppercase; margin-bottom:18px; font-weight:800; }
+.kill-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+.kill-card {
+  text-align:center; padding:18px 12px; border-radius:22px;
+  background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.9);
+  box-shadow:0 8px 20px rgba(31,38,75,0.06); transition:transform 0.2s, box-shadow 0.2s;
+}
+.kill-card:hover { transform:translateY(-4px); box-shadow:0 16px 36px rgba(31,38,75,0.14); }
+.kill-card .name { font-size:1rem; font-weight:800; color:#232838; }
+.kill-card .layer { font-size:0.72rem; color:#8a90a3; margin-top:6px; text-transform:uppercase; letter-spacing:1px; }
+.grid { display:flex; gap:20px; width:100%; max-width:1080px; flex-wrap:wrap; z-index:1; }
 .pane {
-  flex: 1; min-width: 340px;
-  background: rgba(255,255,255,0.50);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.7);
-  border-radius: 28px;
-  padding: 24px;
-  box-shadow: 0 16px 48px rgba(31,38,75,0.10);
+  flex:1; min-width:340px; background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.7); border-radius:28px; padding:24px; box-shadow:0 16px 48px rgba(31,38,75,0.10);
 }
-.pane h2 {
-  font-size: 0.78rem; font-weight: 700; color: #8a90a3;
-  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
-}
+.pane h2 { font-size:0.78rem; font-weight:800; color:#8a90a3; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px; }
 textarea {
-  width: 100%; height: 280px;
-  background: rgba(255,255,255,0.65);
-  color: #232838;
-  border: 1px solid rgba(255,255,255,0.8);
-  border-radius: 18px;
-  padding: 16px;
-  font-family: "SF Mono", "JetBrains Mono", "Fira Code", monospace;
-  font-size: 13px; line-height: 1.6;
-  resize: vertical; outline: none;
-  box-shadow: inset 0 2px 8px rgba(31,38,75,0.04);
-  transition: border-color 0.2s;
+  width:100%; height:280px; background:rgba(255,255,255,0.7); color:#232838; border:1px solid rgba(255,255,255,0.8);
+  border-radius:18px; padding:16px; font-family:"SF Mono","JetBrains Mono",monospace; font-size:13px; line-height:1.6;
+  resize:vertical; outline:none; box-shadow:inset 0 2px 8px rgba(31,38,75,0.04); transition:border-color 0.2s;
 }
-textarea:focus { border-color: #6366f1; }
-.controls { display: flex; gap: 12px; align-items: center; margin: 20px 0; flex-wrap: wrap; z-index: 1; }
+textarea:focus { border-color:#6366f1; }
+.controls { display:flex; gap:12px; align-items:center; margin:20px 0; flex-wrap:wrap; z-index:1; }
 select, button {
-  border: 1px solid rgba(255,255,255,0.8);
-  border-radius: 999px; padding: 10px 20px; font-size: 14px; font-weight: 600;
-  cursor: pointer;
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: #232838;
-  box-shadow: 0 4px 16px rgba(31,38,75,0.06);
-  transition: transform 0.15s, box-shadow 0.15s;
+  border:1px solid rgba(255,255,255,0.8); border-radius:999px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer;
+  background:rgba(255,255,255,0.6); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#232838;
+  box-shadow:0 4px 16px rgba(31,38,75,0.06); transition:transform 0.15s, box-shadow 0.15s;
 }
-select:hover, button:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(31,38,75,0.12); }
-button.primary {
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  color: #fff; border: none;
-  box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+select:hover, button:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(31,38,75,0.12); }
+button.primary { background:linear-gradient(90deg,#6366f1,#8b5cf6); color:#fff; border:none; box-shadow:0 8px 24px rgba(99,102,241,0.35); }
+button.secondary { background:rgba(255,255,255,0.7); color:#4f46e5; border:1px solid rgba(99,102,241,0.25); }
+button:disabled { opacity:0.5; cursor:not-allowed; }
+.stats { display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:13px; color:#5b6472; background:rgba(255,255,255,0.5); border-radius:16px; padding:12px 16px; backdrop-filter:blur(12px); }
+.stats b { color:#232838; }
+.about {
+  width:100%; max-width:1080px; margin-top:36px; z-index:1;
+  background:rgba(255,255,255,0.5); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.7); border-radius:32px; padding:36px;
+  box-shadow:0 20px 60px rgba(31,38,75,0.10);
 }
-button.secondary {
-  background: rgba(255,255,255,0.7);
-  color: #4f46e5; border: 1px solid rgba(99,102,241,0.25);
+.about h2 { font-size:1.5rem; font-weight:900; color:#11142a; margin-bottom:18px; }
+.about h3 { font-size:1.05rem; font-weight:800; color:#4f46e5; margin:22px 0 8px; }
+.about p { color:#4b5563; line-height:1.8; font-size:0.96rem; }
+.about ul { margin:10px 0 10px 20px; color:#4b5563; line-height:1.9; font-size:0.95rem; }
+.about li { margin-bottom:6px; }
+.about .feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:16px; }
+.about .feature {
+  padding:18px; border-radius:20px; background:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.8);
 }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.stats {
-  display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap;
-  font-size: 13px; color: #5b6472;
-  background: rgba(255,255,255,0.5); border-radius: 16px; padding: 12px 16px;
-  backdrop-filter: blur(12px);
-}
-.stats b { color: #232838; }
-.note { margin-top: 24px; max-width: 1080px; color: #5b6472; font-size: 13px; text-align: center; z-index: 1; }
-.note a { color: #4f46e5; font-weight: 600; }
-.loading { color: #d97706; font-weight: 700; }
-#status { font-size: 14px; font-weight: 600; }
+.about .feature b { display:block; font-size:0.95rem; color:#232838; margin-bottom:6px; }
+.about .feature span { font-size:0.85rem; color:#6b7280; line-height:1.6; }
+.note { margin-top:24px; max-width:1080px; color:#5b6472; font-size:13px; text-align:center; z-index:1; }
+.note a { color:#4f46e5; font-weight:600; }
+.loading { color:#d97706; font-weight:700; }
+#status { font-size:14px; font-weight:600; }
 </style>
 </head>
 <body>
 <div class="hero">
   <h1><span class="accent">CSA</span> — Luau Obfuscator</h1>
-  <p>Paste Luau source, get a protected build. Runs entirely in your browser.</p>
-  <span class="killline">⚔ The kill line: weaker at any price gets cut</span>
+  <p class="sub">The kill line. Measured, not marketing.</p>
+  <span class="killline">⚔ Anything weaker at any price gets cut</span>
+</div>
+
+<div class="kill-panel">
+  <h2>CUT BY THE KILL LINE</h2>
+  <div class="kill-grid">
+    <div class="kill-card"><div class="name">goofyscator V9</div><div class="layer">3× loadstring leak · in-house XOR</div></div>
+    <div class="kill-card"><div class="name">Prometheus</div><div class="layer">custom PRNG · incomplete Luau</div></div>
+    <div class="kill-card"><div class="name">Ironbrew</div><div class="layer">cracked · legacy VM</div></div>
+    <div class="kill-card"><div class="name">Hercules</div><div class="layer">outdated bytecode</div></div>
+    <div class="kill-card"><div class="name">MoonSec</div><div class="layer">public deobfuscator exists</div></div>
+    <div class="kill-card"><div class="name">AztupBrew</div><div class="layer">toy obfuscation</div></div>
+  </div>
 </div>
 
 <div class="grid">
@@ -155,6 +138,28 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   <input type="file" id="fileInput" accept=".lua,.luau,.txt" style="display:none;">
   <button class="secondary" id="download" disabled>⬇ Download .lua</button>
   <span id="status"></span>
+</div>
+
+<div class="about">
+  <h2>Why CSA draws the kill line</h2>
+  <p>Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
+
+  <h3>What CSA does</h3>
+  <div class="feature-grid">
+    <div class="feature"><b>Virtualized bytecode</b><span>Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
+    <div class="feature"><b>Standard cipher, per-string keys</b><span>Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
+    <div class="feature"><b>Layered decryption</b><span>Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
+    <div class="feature"><b>Anti-dump &amp; anti-debug</b><span>The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
+    <div class="feature"><b>Identity gate</b><span>A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
+    <div class="feature"><b>Zero plaintext leakage</b><span>loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
+  </div>
+
+  <h3>What CSA is honest about</h3>
+  <ul>
+    <li>No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.</li>
+    <li>The strength comes from the VM and the cipher, not from a marketing page.</li>
+    <li>Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.</li>
+  </ul>
 </div>
 
 <div class="note">
