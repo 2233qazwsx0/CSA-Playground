@@ -323,6 +323,8 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
   border: 1px solid rgba(255,255,255,.26);
   border-radius: 999px;
   padding: 14px 34px; font-size: 15px; font-weight: 800; letter-spacing: .2px;
+  will-change: transform;
+  transform: perspective(700px);
   background:
     radial-gradient(140% 200% at var(--gx, 50%) var(--gy, -25%), rgba(255,255,255,.62) 0%, rgba(255,255,255,.16) 30%, rgba(255,255,255,0) 56%),
     linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.08) 46%, rgba(255,255,255,0) 62%),
@@ -335,10 +337,9 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
     inset 0 3px 12px rgba(255,255,255,.32),
     0 12px 36px rgba(99,102,241,.46),
     0 2px 6px rgba(0,0,0,.32);
-  transition: transform .18s, box-shadow .25s, filter .2s, border-color .2s;
+  transition: box-shadow .3s cubic-bezier(.22,1,.36,1), filter .3s cubic-bezier(.22,1,.36,1), border-color .3s cubic-bezier(.22,1,.36,1);
 }
 .btn-obfuscate:hover:not(:disabled) {
-  transform: translateY(-2px);
   border-color: rgba(255,255,255,.4);
   filter: brightness(1.07) saturate(1.05);
   box-shadow:
@@ -348,7 +349,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
     0 18px 48px rgba(99,102,241,.56),
     0 2px 6px rgba(0,0,0,.3);
 }
-.btn-obfuscate:active:not(:disabled) { transform: translateY(0) scale(.99); filter: brightness(.98); }
+.btn-obfuscate:active:not(:disabled) { filter: brightness(.96) saturate(.98); }
 .btn-obfuscate:disabled { opacity: .5; cursor: not-allowed; }
 .btn-obfuscate .bolt { font-size: 16px; }
 
@@ -884,14 +885,74 @@ const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries =
 }, { threshold: 0.08 }) : null;
 document.querySelectorAll('.reveal').forEach(el => { if (io) io.observe(el); else el.classList.add('in'); });
 
-/* ── liquid-glass cursor sheen (refraction follows the pointer) ── */
+/* ── liquid-glass sheen: inertial refraction that lags, trails and settles ── */
 const GLASS_SEL = '.status-pill, .seg, .nav-cli, .icon-btn, .btn-ghost, .tier-switch, .btn-obfuscate';
+const sheen = new WeakMap();
+let sheenSet = new Set();
+let sheenRaf = 0;
+let sheenLast = null;
+
+function sheenState(el) {
+  let s = sheen.get(el);
+  if (!s) { s = { cx: 50, cy: -20, tx: 50, ty: -20, hover: false, rx: 0, ry: 0, trx: 0, tryv: 0, lift: 0 }; sheen.set(el, s); }
+  return s;
+}
+
+function sheenLoop() {
+  sheenRaf = 0;
+  let keep = false;
+  for (const el of sheenSet) {
+    const s = sheen.get(el);
+    if (!s) continue;
+    const k = s.hover ? 0.18 : 0.09;             // active: snappy · idle: slow settle-out
+    const dx = s.tx - s.cx, dy = s.ty - s.cy;
+    s.cx += dx * k; s.cy += dy * k;
+    el.style.setProperty('--gx', s.cx.toFixed(2) + '%');
+    el.style.setProperty('--gy', s.cy.toFixed(2) + '%');
+
+    if (el.classList.contains('btn-obfuscate')) {   // 3D tilt + lift on the hero button
+      const trx = s.hover ? s.trx : 0;
+      const tryv = s.hover ? s.tryv : 0;
+      const tlift = s.hover ? -2.5 : 0;
+      s.rx += (trx - s.rx) * 0.14;
+      s.ry += (tryv - s.ry) * 0.14;
+      s.lift += (tlift - s.lift) * 0.20;
+      el.style.transform = 'perspective(700px) translateY(' + s.lift.toFixed(2) + 'px) rotateX(' + s.rx.toFixed(2) + 'deg) rotateY(' + s.ry.toFixed(2) + 'deg)';
+    }
+
+    const tilt = el.classList.contains('btn-obfuscate');
+    const settling = Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04 ||
+      (tilt && (Math.abs(s.trx - s.rx) > 0.05 || Math.abs(s.tryv - s.ry) > 0.05 || Math.abs((s.hover ? -2.5 : 0) - s.lift) > 0.05));
+    if (settling) keep = true;
+  }
+  if (keep) sheenRaf = requestAnimationFrame(sheenLoop);
+  else sheenSet.clear();
+}
+
+function engageSheen(el) {
+  if (!sheenSet.has(el)) { sheenSet.add(el); if (!sheenRaf) sheenRaf = requestAnimationFrame(sheenLoop); }
+}
+
 document.addEventListener('pointermove', e => {
   const el = e.target.closest ? e.target.closest(GLASS_SEL) : null;
-  if (!el) return;
-  const r = el.getBoundingClientRect();
-  el.style.setProperty('--gx', ((e.clientX - r.left) / r.width * 100) + '%');
-  el.style.setProperty('--gy', ((e.clientY - r.top) / r.height * 100) + '%');
+  if (el !== sheenLast) {
+    if (sheenLast) { const s = sheenState(sheenLast); s.hover = false; engageSheen(sheenLast); }
+    sheenLast = el;
+  }
+  if (el) {
+    const r = el.getBoundingClientRect();
+    const s = sheenState(el);
+    s.hover = true;
+    s.tx = (e.clientX - r.left) / r.width * 100;
+    s.ty = (e.clientY - r.top) / r.height * 100;
+    if (el.classList.contains('btn-obfuscate')) {
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      s.trx = -py * 5;   // rotateX
+      s.tryv = px * 8;   // rotateY
+    }
+    engageSheen(el);
+  }
 }, { passive: true });
 
 /* ── initial layout ── */
