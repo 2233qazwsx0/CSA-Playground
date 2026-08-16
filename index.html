@@ -567,6 +567,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
           <div class="thumb" id="theme-thumb"></div>
           <button data-theme="arknights" data-i18n="theme_ak">明日方舟</button>
           <button data-theme="zenless" data-i18n="theme_zzz">绝区零</button>
+          <button data-theme="genshin" data-i18n="theme_gi">原神</button>
           <button data-theme="random" class="active" data-i18n="theme_rnd">随机</button>
         </div>
         <button class="btn-ghost" id="upload">⬆ <span data-i18n="btn_up">Upload</span></button>
@@ -634,7 +635,7 @@ const I18N = {
     file_in: "input.luau", file_out: "obfuscated.lua", input_label: "Input",
     btn_obf: "Obfuscate", btn_up: "Upload", btn_dl: "Download .lua", btn_copy: "⧉ Copy",
     tier_lite: "lite", tier_lite_sub: "fast", tier_standard: "standard", tier_standard_sub: "balanced", tier_max: "max", tier_max_sub: "maximum",
-    theme_ak: "Arknights", theme_zzz: "Zenless", theme_rnd: "Random",
+    theme_ak: "Arknights", theme_zzz: "Zenless", theme_gi: "Genshin", theme_rnd: "Random",
     st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Leakage",
     about_title: "Why CSA draws the kill line",
     about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
@@ -667,7 +668,7 @@ const I18N = {
     file_in: "输入.luau", file_out: "混淆.lua", input_label: "输入",
     btn_obf: "混淆", btn_up: "上传", btn_dl: "下载 .lua", btn_copy: "⧉ 复制",
     tier_lite: "lite", tier_lite_sub: "快速", tier_standard: "standard", tier_standard_sub: "均衡", tier_max: "max", tier_max_sub: "最强",
-    theme_ak: "明日方舟", theme_zzz: "绝区零", theme_rnd: "随机",
+    theme_ak: "明日方舟", theme_zzz: "绝区零", theme_gi: "原神", theme_rnd: "随机",
     st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "泄漏",
     about_title: "为什么 CSA 划出斩杀线",
     about_p1: "大多数 Luau 混淆器只做到重命名变量和 XOR 字符串。CSA 走得更远——它把你的脚本编译成自包含的虚拟机，用标准密码算法为每个字符串配一把独立的密钥加密，再整体包进层层解密链，逆向者必须完整解开每一层，才能看到你的一行逻辑。",
