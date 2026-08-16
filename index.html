@@ -3,143 +3,191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f6f4ef">
-<meta name="description" content="CSA — Luau Obfuscator. Runs locally in your browser.">
-<title>CSA · Luau Obfuscator</title>
+<meta name="theme-color" content="#04060c">
+<meta name="description" content="CSA — Luau Obfuscator. Local WebAssembly engine.">
+<title>CSA // LUAU OBFUSCATOR</title>
 <style>
 :root{
-  --bg:#f6f4ef; --panel:#ffffff; --panel-2:#fbfaf6;
-  --ink:#1c1917; --muted:#7a736a; --faint:#a8a196;
-  --line:#e5dfd3; --line-2:#d8d0c0;
-  --accent:#b45309; --accent-hover:#92400e; --accent-soft:#fdf0e0;
-  --ok:#166534; --err:#b91c1c; --busy:#b45309;
-  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --bg0:#04060c; --bg1:#070b16;
+  --accent:#2dd4bf; --accent-2:#34d399; --accent-glow:rgba(45,212,191,.38);
+  --text:#e6f1ef; --muted:#8ba8a3; --faint:#56706b;
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.17);
+  --danger:#fb7185; --ok:#34d399;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   --sans:"Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --serif:Georgia,"Times New Roman","Songti SC",serif;
+  color-scheme:dark;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.55;min-height:100vh}
-button{font-family:inherit;cursor:pointer}
+body{font-family:var(--sans);background:var(--bg0);color:var(--text);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;color:inherit}
 textarea{font-family:var(--mono)}
-.wrap{max-width:1120px;margin:0 auto;padding:0 20px 64px}
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(900px 600px at 14% -10%, rgba(45,212,191,.15), transparent 60%),
+  radial-gradient(820px 520px at 92% 0%, rgba(52,211,153,.10), transparent 55%),
+  radial-gradient(760px 640px at 50% 118%, rgba(20,184,166,.12), transparent 60%),
+  linear-gradient(180deg,#04060c,#060a14 50%,#04060c)}
+.bg::before{content:"";position:absolute;inset:0;background-image:
+  linear-gradient(rgba(120,185,175,.05) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(120,185,175,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 100% 80% at 50% 0%,#000 0%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 100% 80% at 50% 0%,#000 0%,transparent 75%)}
+.bg::after{content:"";position:absolute;inset:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 56px}
+
+/* ── liquid glass core ── */
+.glass{position:relative;border:1px solid rgba(255,255,255,.15);
+  background:
+    radial-gradient(130% 160% at var(--gx,50%) var(--gy,-20%), rgba(255,255,255,.20) 0%, rgba(255,255,255,.05) 34%, rgba(255,255,255,0) 58%),
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.015));
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -12px 24px rgba(0,0,0,.16), 0 10px 30px rgba(0,0,0,.35)}
 
 /* ── header ── */
-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:28px 0 14px;border-bottom:3px solid var(--ink)}
-.brand{display:flex;align-items:baseline;gap:12px}
-.brand h1{font-family:var(--serif);font-size:30px;font-weight:700;letter-spacing:-.5px}
-.brand .tag{color:var(--muted);font-size:13px}
-.head-right{display:flex;align-items:center;gap:14px;font-size:13px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);display:inline-block;flex:none}
-.dot.ok{background:var(--ok)} .dot.err{background:var(--err)} .dot.busy{background:var(--busy);animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.3}}
-#status-label{color:var(--muted)}
-.lang-btn{background:none;border:1px solid var(--line-2);border-radius:4px;padding:3px 10px;font-size:12px;color:var(--muted)}
-.lang-btn:hover{border-color:var(--ink);color:var(--ink)}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:22px 0 16px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:1px;color:#032a24;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 22px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.5)}
+.brand h1{font-family:var(--mono);font-size:19px;letter-spacing:3px;font-weight:700}
+.brand .tag{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:2.5px;color:var(--faint);margin-top:2px}
+.head-right{display:flex;align-items:center;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 16px;font-family:var(--mono);font-size:11.5px;letter-spacing:1.5px;color:var(--muted)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none;box-shadow:0 0 8px var(--faint)}
+.pill .dot.ok{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.pill .dot.err{background:var(--danger);box-shadow:0 0 10px var(--danger)}
+.pill .dot.busy{background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.lang-btn{border-radius:999px;padding:8px 16px;font-family:var(--mono);font-size:11.5px;letter-spacing:1.5px;color:var(--muted);transition:color .2s,border-color .2s}
+.lang-btn:hover{color:var(--text);border-color:var(--line-strong)}
 
-/* ── editors ── */
+/* ── editor panes ── */
 .editors{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
-@media(max-width:820px){.editors{grid-template-columns:1fr}}
-.pane{background:var(--panel);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
-.pane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel-2);font-size:12px;color:var(--muted)}
-.pane-head b{color:var(--ink);font-weight:600}
-.pane-head .count{font-family:var(--mono);font-size:11px;color:var(--faint)}
-.pane textarea{flex:1;min-height:420px;border:0;resize:none;outline:none;padding:14px;background:transparent;color:var(--ink);font-size:12.5px;line-height:1.6;tab-size:2}
-.pane textarea[readonly]{background:var(--panel-2)}
+@media(max-width:840px){.editors{grid-template-columns:1fr}}
+.pane{border-radius:14px;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,rgba(11,17,28,.72),rgba(6,9,16,.88))}
+.pane::before,.pane::after{content:"";position:absolute;width:18px;height:18px;z-index:2;pointer-events:none}
+.pane::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);border-top-left-radius:14px;filter:drop-shadow(0 0 6px var(--accent))}
+.pane::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);border-bottom-right-radius:14px;filter:drop-shadow(0 0 6px var(--accent))}
+.pane-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pane-title{font-family:var(--mono);font-size:11px;letter-spacing:2.5px;color:var(--accent);font-weight:700}
+.pane-title i{font-style:normal;color:var(--faint)}
+.count{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:1px}
+.pane textarea{flex:1;min-height:430px;border:0;resize:none;outline:none;padding:16px;background:transparent;color:var(--text);font-size:12.5px;line-height:1.65;tab-size:2;caret-color:var(--accent)}
 .pane textarea::placeholder{color:var(--faint)}
-.pane.placeholder textarea{background:repeating-linear-gradient(0deg,transparent,transparent 19px,var(--line) 19px,var(--line) 20px),var(--panel-2)}
+.pane textarea[readonly]{color:#cfe9e3}
+#out:focus{outline:none}
 
-/* ── controls ── */
-.controls{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.tier{display:flex;border:1px solid var(--line-2);border-radius:6px;overflow:hidden}
-.tier button{border:0;background:var(--panel);padding:8px 16px;font-size:13px;color:var(--muted)}
-.tier button+button{border-left:1px solid var(--line-2)}
-.tier button.active{background:var(--ink);color:#fff}
-select{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);color:var(--ink)}
-.actions{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
-.btn{border:1px solid var(--line-2);background:var(--panel);border-radius:6px;padding:8px 18px;font-size:14px;color:var(--ink)}
-.btn:hover{border-color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-.btn.primary:disabled{opacity:.5;cursor:not-allowed}
+/* ── control deck ── */
+.deck{margin-top:20px;border-radius:14px;padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.tier{position:relative;display:flex;border-radius:11px;padding:4px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.tier .thumb{position:absolute;top:4px;bottom:4px;left:4px;z-index:1;border-radius:8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 0 14px rgba(45,212,191,.12), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:width .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1)}
+.tier button{position:relative;z-index:2;border:0;background:transparent;padding:9px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--faint);transition:color .2s}
+.tier button.active{color:var(--accent);text-shadow:0 0 12px var(--accent-glow)}
+.select-wrap{position:relative;border-radius:11px;display:flex;align-items:center;padding:0 14px}
+.select-wrap::after{content:"▾";position:absolute;right:12px;font-size:10px;color:var(--faint);pointer-events:none}
+.select-wrap select{appearance:none;-webkit-appearance:none;border:0;background:transparent;outline:none;color:var(--muted);font-family:var(--mono);font-size:11.5px;letter-spacing:1.5px;padding:11px 24px 11px 2px;cursor:pointer}
+.actions{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap}
+.btn{border-radius:11px;padding:11px 24px;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--muted);transition:color .2s,border-color .2s,transform .12s,box-shadow .2s}
+.btn:hover{color:var(--text);border-color:var(--line-strong)}
+.btn:active{transform:translateY(1px) scale(.985)}
+.btn.primary{color:#032a24;font-weight:700;border-color:transparent;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);
+  box-shadow:0 0 26px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.45);
+  text-shadow:none}
+.btn.primary:hover{box-shadow:0 0 38px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.55);color:#02231e}
+.btn.primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn:disabled{cursor:not-allowed;opacity:.45}
 
 /* ── stats ── */
-.stats{margin-top:16px;display:none;flex-wrap:wrap;gap:10px}
-.stats.show{display:flex}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--muted)}
-.stat b{display:block;font-family:var(--mono);font-size:16px;color:var(--ink);font-weight:600}
+.stats{display:none;margin-top:16px;gap:12px;flex-wrap:wrap;align-items:stretch}
+.stats.show{display:flex;animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stat{border-radius:12px;padding:10px 18px;min-width:118px}
+.stat span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:2.5px;color:var(--faint);margin-bottom:3px}
+.stat b{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:600;text-shadow:0 0 14px var(--accent-glow)}
+.stat-actions{margin-left:auto;display:flex;gap:12px;align-items:center}
 
 /* ── footer ── */
-footer{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-wrap:wrap;gap:6px 24px;font-size:12.5px;color:var(--muted)}
-footer a{color:var(--accent)}
-.note{color:var(--faint);font-size:12px}
+footer{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-wrap:wrap;gap:6px 26px;font-family:var(--mono);font-size:10.5px;letter-spacing:2px;color:var(--faint)}
+footer b{color:var(--muted);font-weight:600}
 </style>
 </head>
 <body>
+<div class="bg"></div>
 <div class="wrap">
 
 <header>
   <div class="brand">
-    <h1>CSA</h1>
-    <span class="tag" data-i18n="tagline">Luau 混淆器 · 浏览器本地运行</span>
+    <div class="logo">CSA</div>
+    <div>
+      <h1>CSA</h1>
+      <span class="tag" data-i18n="tagline">LUAU OBFUSCATOR · LOCAL WASM ENGINE</span>
+    </div>
   </div>
   <div class="head-right">
-    <span class="dot" id="dot"></span><span id="status-label" data-i18n="loading">引擎加载中…</span>
-    <button class="lang-btn" id="lang-btn" type="button">EN</button>
+    <span class="pill glass" id="status-pill"><span class="dot" id="dot"></span><span id="status-label" data-i18n="loading">LOADING ENGINE…</span></span>
+    <button class="lang-btn glass" id="lang-btn" type="button">中文</button>
   </div>
 </header>
 
 <main>
   <div class="editors">
-    <section class="pane" id="pane-in">
-      <div class="pane-head"><b data-i18n="input">输入</b><span class="count" id="in-count">0 字符</span></div>
+    <section class="pane glass">
+      <div class="pane-head"><span class="pane-title">IN <i>//</i> <span data-i18n="input">源码</span></span><span class="count" id="in-count">0 CH</span></div>
       <textarea id="in" spellcheck="false" placeholder="-- 在此粘贴 Luau 源码…" data-i18n-ph="input_ph"></textarea>
     </section>
-    <section class="pane" id="pane-out">
-      <div class="pane-head"><b data-i18n="output">输出</b><span class="count" id="out-count">0 字符</span></div>
+    <section class="pane glass">
+      <div class="pane-head"><span class="pane-title">OUT <i>//</i> <span data-i18n="output">产物</span></span><span class="count" id="out-count">0 CH</span></div>
       <textarea id="out" readonly spellcheck="false" placeholder="—" data-i18n-ph="output_ph"></textarea>
     </section>
   </div>
 
-  <div class="controls">
+  <div class="deck glass">
     <div class="tier" id="tier" role="group" aria-label="tier">
-      <button type="button" data-tier="lite" data-i18n="lite">lite</button>
-      <button type="button" data-tier="standard" data-i18n="standard">standard</button>
-      <button type="button" data-tier="max" class="active" data-i18n="max">max</button>
+      <span class="thumb" id="tier-thumb"></span>
+      <button type="button" data-tier="lite" data-i18n="lite">LITE</button>
+      <button type="button" data-tier="standard" data-i18n="standard">STANDARD</button>
+      <button type="button" data-tier="max" class="active" data-i18n="max">MAX</button>
     </div>
-    <select id="theme" aria-label="theme" title="变量名主题">
-      <option value="random" selected data-i18n="theme_random">随机主题</option>
-      <option value="arknights" data-i18n="theme_ak">明日方舟</option>
-      <option value="zenless" data-i18n="theme_zz">绝区零</option>
-      <option value="genshin" data-i18n="theme_gi">原神</option>
-      <option value="starrail" data-i18n="theme_sr">星穹铁道</option>
-      <option value="wuthering" data-i18n="theme_ww">鸣潮</option>
-      <option value="endfield" data-i18n="theme_ef">终末地</option>
-      <option value="confusion" data-i18n="theme_cf">混淆字符</option>
-    </select>
+    <span class="select-wrap glass">
+      <select id="theme" aria-label="theme" title="变量名主题">
+        <option value="random" selected data-i18n="theme_random">随机主题</option>
+        <option value="arknights" data-i18n="theme_ak">明日方舟</option>
+        <option value="zenless" data-i18n="theme_zz">绝区零</option>
+        <option value="genshin" data-i18n="theme_gi">原神</option>
+        <option value="starrail" data-i18n="theme_sr">星穹铁道</option>
+        <option value="wuthering" data-i18n="theme_ww">鸣潮</option>
+        <option value="endfield" data-i18n="theme_ef">终末地</option>
+        <option value="confusion" data-i18n="theme_cf">混淆字符</option>
+      </select>
+    </span>
     <div class="actions">
-      <button class="btn" id="upload" type="button" data-i18n="upload">打开文件</button>
+      <button class="btn glass" id="upload" type="button" data-i18n="upload">⬆ OPEN</button>
       <input type="file" id="file" accept=".lua,.luau,.txt" hidden>
-      <button class="btn primary" id="obf" type="button" disabled data-i18n="obfuscate">混淆</button>
+      <button class="btn primary glass" id="obf" type="button" disabled data-i18n="obfuscate">⚡ OBFUSCATE</button>
     </div>
   </div>
 
   <div class="stats" id="stats">
-    <div class="stat"><span data-i18n="tier_l">等级</span><b id="stat-tier">—</b></div>
-    <div class="stat"><span data-i18n="size">大小</span><b id="stat-size">—</b></div>
-    <div class="stat"><span data-i18n="ratio">膨胀率</span><b id="stat-ratio">—</b></div>
-    <div class="stat"><span data-i18n="time">耗时</span><b id="stat-time">—</b></div>
-    <div class="actions" style="margin-left:auto;align-self:center">
-      <button class="btn" id="copy" type="button" data-i18n="copy">复制</button>
-      <button class="btn" id="dl" type="button" disabled data-i18n="download">下载 .lua</button>
+    <div class="stat glass"><span data-i18n="tier_l">TIER</span><b id="stat-tier">—</b></div>
+    <div class="stat glass"><span data-i18n="size">SIZE</span><b id="stat-size">—</b></div>
+    <div class="stat glass"><span data-i18n="ratio">RATIO</span><b id="stat-ratio">—</b></div>
+    <div class="stat glass"><span data-i18n="time">TIME</span><b id="stat-time">—</b></div>
+    <div class="stat-actions">
+      <button class="btn glass" id="copy" type="button" data-i18n="copy">⧉ COPY</button>
+      <button class="btn glass" id="dl" type="button" disabled data-i18n="download">⬇ .LUA</button>
     </div>
   </div>
 </main>
 
 <footer>
-  <span data-i18n="local">无服务器 — 混淆由 WebAssembly 在本机浏览器完成</span>
-  <span><span data-i18n="total_obf">总混淆</span>: <b id="total-obf">–</b> · <span data-i18n="total_dl">下载</span>: <b id="total-dl">–</b></span>
-  <span class="note" id="ver"></span>
+  <span data-i18n="local">NO SERVER · WASM RUNS IN YOUR BROWSER</span>
+  <span><span data-i18n="total_obf">OBS</span>: <b id="total-obf">–</b> &nbsp;<span data-i18n="total_dl">DLS</span>: <b id="total-dl">–</b></span>
 </footer>
 
 </div>
@@ -150,31 +198,31 @@ footer a{color:var(--accent)}
 const API = 'https://api.csa.cua123.ccwu.cc';
 const $ = s => document.querySelector(s);
 
-/* ── i18n (minimal) ── */
+/* ── i18n ── */
 const STR = {
   zh: {
-    tagline:'Luau 混淆器 · 浏览器本地运行', loading:'引擎加载中…', ready:'就绪', obfuscating:'混淆中…', done:'完成', error:'出错',
-    input:'输入', output:'输出', input_ph:'-- 在此粘贴 Luau 源码…', output_ph:'—',
-    lite:'lite', standard:'standard', max:'max',
+    tagline:'LUAU OBFUSCATOR · 本地 WASM 引擎', loading:'引擎加载中…', ready:'就绪', obfuscating:'混淆中…', done:'完成', error:'出错',
+    input:'源码', output:'产物', input_ph:'-- 在此粘贴 Luau 源码…', output_ph:'—',
+    lite:'LITE', standard:'STANDARD', max:'MAX',
     theme_random:'随机主题', theme_ak:'明日方舟', theme_zz:'绝区零', theme_gi:'原神', theme_sr:'星穹铁道', theme_ww:'鸣潮', theme_ef:'终末地', theme_cf:'混淆字符',
-    upload:'打开文件', obfuscate:'混淆', copy:'复制', copied:'已复制 ✓', download:'下载 .lua',
+    upload:'⬆ 打开', obfuscate:'⚡ 混淆', copy:'⧉ 复制', copied:'已复制 ✓', download:'⬇ 下载',
     tier_l:'等级', size:'大小', ratio:'膨胀率', time:'耗时',
-    local:'无服务器 — 混淆由 WebAssembly 在本机浏览器完成',
+    local:'无服务器 · WASM 在浏览器本地运行',
     total_obf:'总混淆', total_dl:'下载',
-    no_input:'请先输入代码', wait:'引擎尚未就绪',
-    load_failed:'WASM 加载失败:', chars:'字符', lines:'行',
+    no_input:'请先输入代码', wait:'引擎尚未就绪', load_failed:'WASM 加载失败:',
+    chars:'字符', lines:'行',
   },
   en: {
-    tagline:'Luau Obfuscator · runs in your browser', loading:'Loading engine…', ready:'Ready', obfuscating:'Obfuscating…', done:'Done', error:'Error',
-    input:'Input', output:'Output', input_ph:'-- paste Luau source here…', output_ph:'—',
-    lite:'lite', standard:'standard', max:'max',
+    tagline:'LUAU OBFUSCATOR · LOCAL WASM ENGINE', loading:'LOADING ENGINE…', ready:'READY', obfuscating:'OBFUSCATING…', done:'DONE', error:'ERROR',
+    input:'SOURCE', output:'RESULT', input_ph:'-- paste Luau source here…', output_ph:'—',
+    lite:'LITE', standard:'STANDARD', max:'MAX',
     theme_random:'Random', theme_ak:'Arknights', theme_zz:'Zenless', theme_gi:'Genshin', theme_sr:'Star Rail', theme_ww:'Wuthering', theme_ef:'Endfield', theme_cf:'Confusion',
-    upload:'Open file', obfuscate:'Obfuscate', copy:'Copy', copied:'Copied ✓', download:'Download .lua',
-    tier_l:'Tier', size:'Size', ratio:'Ratio', time:'Time',
-    local:'No server — obfuscation runs locally via WebAssembly',
-    total_obf:'Obfuscations', total_dl:'Downloads',
-    no_input:'Please enter some code', wait:'Engine not ready yet',
-    load_failed:'WASM load failed:', chars:'chars', lines:'lines',
+    upload:'OPEN', obfuscate:'OBFUSCATE', copy:'COPY', copied:'COPIED ✓', download:'.LUA',
+    tier_l:'TIER', size:'SIZE', ratio:'RATIO', time:'TIME',
+    local:'NO SERVER · WASM RUNS IN YOUR BROWSER',
+    total_obf:'OBS', total_dl:'DLS',
+    no_input:'PLEASE ENTER SOME CODE', wait:'ENGINE NOT READY', load_failed:'WASM LOAD FAILED:',
+    chars:'CH', lines:'LN',
   }
 };
 let lang = 'zh';
@@ -208,7 +256,7 @@ function updateCounts(){
   $('#out-count').textContent = lines($('#out').value);
 }
 
-/* ── wasm bootstrap: never await go.run() — Go main() blocks forever; poll for the export ── */
+/* ── wasm bootstrap: never await go.run() (Go main blocks forever); poll for export ── */
 function pollReady(){
   if (typeof csaObfuscate === 'function'){
     ready = true;
@@ -227,13 +275,68 @@ WebAssembly.instantiateStreaming(fetch('./csa.wasm'), go.importObject)
   .catch(() => fetch('./csa.wasm').then(r => r.arrayBuffer()).then(boot))
   .catch(e => setStatus('err', t('load_failed') + ' ' + e));
 
-/* ── controls ── */
+/* ── liquid glass sheen: cursor-tracking highlight with inertial settle ── */
+const sheen = new WeakMap();
+let sheenSet = new Set();
+let sheenRaf = 0;
+let sheenLast = null;
+function sstate(el){
+  let s = sheen.get(el);
+  if (!s){ s = { cx: 50, cy: -20, tx: 50, ty: -20, hover: false }; sheen.set(el, s); }
+  return s;
+}
+function sheenLoop(){
+  sheenRaf = 0;
+  let keep = false;
+  for (const el of sheenSet){
+    const s = sheen.get(el);
+    if (!s) continue;
+    const k = s.hover ? 0.18 : 0.08;
+    s.cx += (s.tx - s.cx) * k;
+    s.cy += (s.ty - s.cy) * k;
+    el.style.setProperty('--gx', s.cx.toFixed(2) + '%');
+    el.style.setProperty('--gy', s.cy.toFixed(2) + '%');
+    if (Math.abs(s.tx - s.cx) > 0.05 || Math.abs(s.ty - s.cy) > 0.05) keep = true;
+  }
+  if (keep) sheenRaf = requestAnimationFrame(sheenLoop);
+  else sheenSet.clear();
+}
+function engageSheen(el){
+  if (!sheenSet.has(el)){ sheenSet.add(el); if (!sheenRaf) sheenRaf = requestAnimationFrame(sheenLoop); }
+}
+document.addEventListener('pointermove', e => {
+  const el = e.target.closest ? e.target.closest('.glass') : null;
+  if (el !== sheenLast){
+    if (sheenLast){ const s = sstate(sheenLast); s.hover = false; engageSheen(sheenLast); }
+    sheenLast = el;
+  }
+  if (el){
+    const r = el.getBoundingClientRect();
+    const s = sstate(el);
+    s.hover = true;
+    s.tx = (e.clientX - r.left) / r.width * 100;
+    s.ty = (e.clientY - r.top) / r.height * 100;
+    engageSheen(el);
+  }
+}, { passive: true });
+
+/* ── tier + theme ── */
+function moveThumb(){
+  const track = $('#tier'), thumb = $('#tier-thumb');
+  const b = track.querySelector('button.active');
+  if (!b) return;
+  thumb.style.width = b.offsetWidth + 'px';
+  thumb.style.transform = 'translateX(' + b.offsetLeft + 'px)';
+}
 $('#tier').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   curTier = b.dataset.tier;
   document.querySelectorAll('#tier button').forEach(x => x.classList.toggle('active', x === b));
+  moveThumb();
 });
 $('#theme').addEventListener('change', e => { curTheme = e.target.value; });
+
+/* ── file open ── */
 $('#file').addEventListener('change', e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   const rd = new FileReader();
@@ -243,20 +346,21 @@ $('#file').addEventListener('change', e => {
 });
 $('#upload').addEventListener('click', () => $('#file').click());
 
+/* ── obfuscate ── */
 function obfuscate(){
   const src = $('#in').value;
-  if (!src.trim()) { setStatus('err', t('no_input')); return; }
-  if (!ready) { setStatus('err', t('wait')); return; }
+  if (!src.trim()){ setStatus('err', t('no_input')); return; }
+  if (!ready){ setStatus('err', t('wait')); return; }
   $('#obf').disabled = true;
   setStatus('busy', t('obfuscating'));
   setTimeout(() => {
     try {
       const out = csaObfuscate(src, curTier, curTheme);
-      if (out && out.error) { setStatus('err', out.error); $('#obf').disabled = false; return; }
+      if (out && out.error){ setStatus('err', out.error); $('#obf').disabled = false; return; }
       $('#out').value = out.result;
       $('#stat-tier').textContent = out.tier;
       $('#stat-size').textContent = fmtBytes(out.outputBytes);
-      $('#stat-ratio').textContent = (out.outputBytes / Math.max(1, out.inputBytes)).toFixed(1) + '×';
+      $('#stat-ratio').textContent = (out.outputBytes / Math.max(1, out.inputBytes)).toFixed(1) + 'x';
       $('#stat-time').textContent = out.durationMs + ' ms';
       $('#stats').classList.add('show');
       $('#dl').disabled = false;
@@ -286,7 +390,7 @@ $('#dl').addEventListener('click', () => {
   try { fetch(API + '/download', { method: 'POST' }); } catch (e) {}
 });
 
-/* ── stats from API ── */
+/* ── api stats ── */
 fetch(API + '/stats').then(r => r.json()).then(d => {
   if (d.obfuscations !== undefined) $('#total-obf').textContent = d.obfuscations;
   if (d.downloads !== undefined) $('#total-dl').textContent = d.downloads;
@@ -295,8 +399,11 @@ fetch(API + '/stats').then(r => r.json()).then(d => {
 /* ── init ── */
 $('#in').addEventListener('input', updateCounts);
 $('#out').addEventListener('input', updateCounts);
+window.addEventListener('load', moveThumb);
+window.addEventListener('resize', moveThumb);
 applyLang();
 updateCounts();
+moveThumb();
 setStatus('', t('loading'));
 </script>
 </body>
