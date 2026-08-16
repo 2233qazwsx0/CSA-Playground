@@ -13,42 +13,46 @@
   --accent: #2563eb;
   --page: #f6f9ff;
 }
+/* fixed gradient layer (iOS-safe replacement for background-attachment:fixed) */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -2;
+  background: linear-gradient(180deg,
+    #071033 0%, #0a1e5e 14%, #0f2f8f 30%, #1a4fc0 45%,
+    #2f6ae8 58%, #7ea8f2 72%, #c4d9f7 84%, #eef4fe 93%, #f8faff 100%);
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  background: var(--page);
+  background: #f8faff;
+  min-height: 100vh;
   color: var(--ink);
   display: flex; flex-direction: column; align-items: center;
   overflow-x: hidden;
 }
 
-/* ══════════ HERO: self-contained deep blue block ══════════ */
+/* ══════════ HERO: flows on the gradient, no own background ══════════ */
 .hero-zone {
   width: 100%;
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 96px 20px 150px;
-  background: linear-gradient(165deg, #071033 0%, #0a1e5e 30%, #123c9e 62%, #1e56c8 100%);
+  padding: 110px 20px 64px;
   overflow: hidden;
   isolation: isolate;
-  border-radius: 0 0 56px 56px;
-  margin-bottom: -64px; /* let main content ride up onto the curve */
-}
-/* tech grid */
+/* tech grid — fades with the gradient */
 .hero-zone::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background-image:
-    linear-gradient(rgba(148,180,255,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,180,255,0.07) 1px, transparent 1px);
+    linear-gradient(rgba(148,180,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,180,255,0.08) 1px, transparent 1px);
   background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 35%, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 35%, black 30%, transparent 75%);
+  mask-image: linear-gradient(180deg, black 0%, black 55%, transparent 95%);
+  -webkit-mask-image: linear-gradient(180deg, black 0%, black 55%, transparent 95%);
 }
-/* two light orbs */
+/* light orbs — only in upper blue zone */
 .hero-zone::after {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(600px 420px at 12% 18%, rgba(59,130,246,0.35), transparent 65%),
-    radial-gradient(520px 380px at 88% 78%, rgba(56,189,248,0.22), transparent 62%);
+    radial-gradient(600px 420px at 12% 18%, rgba(59,130,246,0.30), transparent 65%),
+    radial-gradient(520px 380px at 88% 60%, rgba(56,189,248,0.18), transparent 62%);
 }
 
 .lang-bar { position: absolute; top: 22px; right: 24px; z-index: 5; }
@@ -125,10 +129,11 @@ body {
 .grid { display: flex; gap: 20px; width: 100%; flex-wrap: wrap; }
 .pane {
   flex: 1; min-width: 340px;
-  background: #ffffff;
-  border: 1px solid #e3ecfa;
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.85);
   border-radius: 20px; padding: 22px;
-  box-shadow: 0 12px 40px rgba(18,60,158,0.08);
+  box-shadow: 0 16px 48px rgba(18,60,158,0.14);
 }
 .pane h2 {
   font-size: 0.72rem; font-weight: 800; color: #8fa3c8;
@@ -189,7 +194,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .stats b { color: #14357e; }
 
 /* ══════════ ABOUT ══════════ */
-.about { width: 100%; margin-top: 44px; background: #fff; border: 1px solid #e3ecfa; border-radius: 24px; padding: 40px; box-shadow: 0 12px 40px rgba(18,60,158,0.06); }
+.about { width: 100%; margin-top: 44px; background: rgba(255,255,255,0.78); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); border: 1px solid rgba(255,255,255,0.85); border-radius: 24px; padding: 40px; box-shadow: 0 16px 48px rgba(18,60,158,0.10); }
 .about h2 { font-size: 1.6rem; font-weight: 900; color: #0d1730; margin-bottom: 14px; letter-spacing: -0.5px; }
 .about h3 { font-size: 1rem; font-weight: 800; color: #14357e; margin: 24px 0 10px; }
 .about p { color: #4a5a7d; line-height: 1.8; font-size: 0.95rem; }
@@ -208,8 +213,9 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .tiles { display: flex; gap: 16px; width: 100%; margin: 36px 0 8px; flex-wrap: wrap; }
 .tile {
   flex: 1; min-width: 160px; text-align: center; padding: 26px 16px; border-radius: 18px;
-  background: #fff; border: 1px solid #e3ecfa;
-  box-shadow: 0 12px 32px rgba(18,60,158,0.08);
+  background: rgba(255,255,255,0.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.85);
+  box-shadow: 0 16px 44px rgba(18,60,158,0.12);
 }
 .tile .num { font-size: 2.4rem; font-weight: 900; color: #14357e; line-height: 1; }
 .tile .label { font-size: 0.72rem; color: #8fa3c8; text-transform: uppercase; letter-spacing: 1.4px; margin-top: 10px; font-weight: 700; }
