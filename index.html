@@ -590,23 +590,45 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
   </section>
 
   <!-- ═══════════ ABOUT ═══════════ -->
-  <section class="about wrap">
+    <section class="about wrap">
     <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
-    <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
+    <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings — the source shape survives, and so does the logic. CSA goes further: it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
+    <p data-i18n="about_p2">The chain works in both directions. Before the VM even exists, CSA tears the source apart — identifier renaming, integer noise, loop unrolling, control-flow flattening, MBA arithmetic. After compilation it compresses, fragments and encrypts the payload, then hands it to a bootstrap that verifies its own integrity, watches for dumpers and debuggers, and only then releases the keys. Every build is different: seed, VM layout, key schedule, name pools, fragment order. Nothing to fingerprint, nothing to reuse.</p>
     <h3 data-i18n="about_what">What CSA does</h3>
     <div class="feature-grid">
-      <div class="feature"><div class="f-icon">🧠</div><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
-      <div class="feature"><div class="f-icon">🔐</div><b data-i18n="f2_t">Standard cipher, per-string keys</b><span data-i18n="f2_d">Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
-      <div class="feature"><div class="f-icon">🪆</div><b data-i18n="f3_t">Layered decryption</b><span data-i18n="f3_d">Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
-      <div class="feature"><div class="f-icon">🛡️</div><b data-i18n="f4_t">Anti-dump &amp; anti-debug</b><span data-i18n="f4_d">The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
-      <div class="feature"><div class="f-icon">🚪</div><b data-i18n="f5_t">Identity gate</b><span data-i18n="f5_d">A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
-      <div class="feature"><div class="f-icon">🔒</div><b data-i18n="f6_t">Zero plaintext leakage</b><span data-i18n="f6_d">loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
+      <div class="feature"><div class="f-icon">🧠</div><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your script compiles to bytecode for a custom VM with per-build randomized instruction encoding — no native Luau opcodes, no loadstring, nothing a static analyzer can anchor on.</span></div>
+      <div class="feature"><div class="f-icon">🔐</div><b data-i18n="f2_t">Standard cipher, per-string keys</b><span data-i18n="f2_d">Every string is encrypted with Speck-CTR under its own independent 128-bit key, derived from the per-build seed. No shared constant, no in-house XOR.</span></div>
+      <div class="feature"><div class="f-icon">🪆</div><b data-i18n="f3_t">Layered decryption chain</b><span data-i18n="f3_d">Compression → fragmentation → cipher → integrity. The runtime unwinds the chain piece by piece; break one layer and the rest still hold.</span></div>
+      <div class="feature"><div class="f-icon">🎲</div><b data-i18n="f4_t">Per-build polymorphism</b><span data-i18n="f4_d">With a random seed, every obfuscation of the same script produces a different VM layout, key schedule, fragment order and name pool — two builds share nothing.</span></div>
+      <div class="feature"><div class="f-icon">🛡️</div><b data-i18n="f5_t">Anti-dump &amp; anti-debug</b><span data-i18n="f5_d">string.dump interception, hook fingerprinting, memory erasure and environment probing — the output actively resists dumping and debugger attach at runtime.</span></div>
+      <div class="feature"><div class="f-icon">🚪</div><b data-i18n="f6_t">Identity gate</b><span data-i18n="f6_d">A type-lock proof embedded in the decryption chain. Stub it, skip it or reorder it and the keys silently corrupt — the attacker gets garbage, not source.</span></div>
+      <div class="feature"><div class="f-icon">🌀</div><b data-i18n="f7_t">Control-flow armor</b><span data-i18n="f7_d">Before compilation: identifier renaming, integer noise, loop unrolling, control-flow flattening, constant protection and MBA arithmetic destroy the source shape.</span></div>
+      <div class="feature"><div class="f-icon">🔒</div><b data-i18n="f8_t">Zero plaintext leakage</b><span data-i18n="f8_d">loadstring, API names, string constants, entry points — none appear in the output. Verified against real obfuscators by counting plaintext matches.</span></div>
+      <div class="feature"><div class="f-icon">⚙️</div><b data-i18n="f9_t">Three security tiers</b><span data-i18n="f9_d">lite (AST-level only, fastest), standard (VM + encryption + anti-dump) and max (everything plus integrity, anti-debug and the identity gate).</span></div>
+      <div class="feature"><div class="f-icon">🎨</div><b data-i18n="f10_t">Themed name pools</b><span data-i18n="f10_d">Identifiers are drawn from themed pools — Arknights, Zenless, Genshin, Star Rail, Wuthering Waves, Endfield — with random suffixes, so obfuscated names look native, not mechanical.</span></div>
     </div>
+    <h3 data-i18n="about_pipe">The protection pipeline</h3>
+    <ul>
+      <li data-i18n="pipe1">Parse the Luau source and strip macros and comments.</li>
+      <li data-i18n="pipe2">AST-level defenses: rename identifiers, inject integer noise, unroll loops, flatten control flow, protect constants, apply MBA arithmetic.</li>
+      <li data-i18n="pipe3">Compile the mangled AST into custom VM bytecode with a randomized instruction encoding.</li>
+      <li data-i18n="pipe4">Derive a per-build key schedule from the seed — every string, fragment and layer gets its own key.</li>
+      <li data-i18n="pipe5">Generate the themed VM runtime that will execute the bytecode.</li>
+      <li data-i18n="pipe6">LZ77-compress the program and split it into multistage fragments.</li>
+      <li data-i18n="pipe7">Speck-encrypt every fragment and bind them together with integrity checks.</li>
+      <li data-i18n="pipe8">Emit the bootstrap shell — verification first, keys released last — then minify and validate the output.</li>
+    </ul>
+    <h3 data-i18n="about_tiers">Security tiers</h3>
+    <ul>
+      <li data-i18n="tlite">lite ⚡ — AST-level obfuscation only: renaming, control flow, constant protection. No VM, no encryption. Fastest output, minimal overhead — for quick iteration.</li>
+      <li data-i18n="tstd">standard 🛡 — VM + Speck encryption + LZ77 + anti-dump. The production default for most scripts.</li>
+      <li data-i18n="tmax">max 🔥 — everything: multistage fragmentation, integrity checks, anti-debug, identity gate. For high-value scripts.</li>
+    </ul>
     <h3 data-i18n="about_honest">What CSA is honest about</h3>
     <ul>
-      <li data-i18n="hon1">No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.</li>
-      <li data-i18n="hon2">The strength comes from the VM and the cipher, not from a marketing page.</li>
-      <li data-i18n="hon3">Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.</li>
+      <li data-i18n="hon1">No obfuscator makes code mathematically impossible to reverse — CSA raises the cost of reversing until it is not worth paying.</li>
+      <li data-i18n="hon2">The strength comes from the VM and the cipher, not from the marketing page — every claim maps to a stage in the pipeline above.</li>
+      <li data-i18n="hon3">Every comparison on this page is reproducible — same input, plaintext leaks counted by grep, protection depth measured layer by layer.</li>
     </ul>
   </section>
 </main>
@@ -641,19 +663,37 @@ const I18N = {
     tier_lite: "lite", tier_lite_sub: "fast", tier_standard: "standard", tier_standard_sub: "balanced", tier_max: "max", tier_max_sub: "maximum",
     theme_ak: "Arknights", theme_zzz: "Zenless", theme_gi: "Genshin", theme_sr: "Star Rail", theme_ww: "Wuthering Waves", theme_ef: "Endfield", theme_rnd: "Random",
     st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Leakage",
-    about_title: "Why CSA draws the kill line",
-    about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
+        about_title: "Why CSA draws the kill line",
+    about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings — the source shape survives, and so does the logic. CSA goes further: it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
+    about_p2: "The chain works in both directions. Before the VM even exists, CSA tears the source apart — identifier renaming, integer noise, loop unrolling, control-flow flattening, MBA arithmetic. After compilation it compresses, fragments and encrypts the payload, then hands it to a bootstrap that verifies its own integrity, watches for dumpers and debuggers, and only then releases the keys. Every build is different: seed, VM layout, key schedule, name pools, fragment order. Nothing to fingerprint, nothing to reuse.",
     about_what: "What CSA does",
-    f1_t: "Virtualized bytecode", f1_d: "Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.",
-    f2_t: "Standard cipher, per-string keys", f2_d: "Speck-CTR with an independent 128-bit key per string. Not in-house XOR.",
-    f3_t: "Layered decryption", f3_d: "Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.",
-    f4_t: "Anti-dump & anti-debug", f4_d: "The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.",
-    f5_t: "Identity gate", f5_d: "A type-lock proof that silently corrupts the key if an attacker stubs or skips it.",
-    f6_t: "Zero plaintext leakage", f6_d: "loadstring, API names, strings — none appear in the output. Measured against real obfuscators.",
+    f1_t: "Virtualized bytecode", f1_d: "Your script compiles to bytecode for a custom VM with per-build randomized instruction encoding — no native Luau opcodes, no loadstring, nothing a static analyzer can anchor on.",
+    f2_t: "Standard cipher, per-string keys", f2_d: "Every string is encrypted with Speck-CTR under its own independent 128-bit key, derived from the per-build seed. No shared constant, no in-house XOR.",
+    f3_t: "Layered decryption chain", f3_d: "Compression → fragmentation → cipher → integrity. The runtime unwinds the chain piece by piece; break one layer and the rest still hold.",
+    f4_t: "Per-build polymorphism", f4_d: "With a random seed, every obfuscation of the same script produces a different VM layout, key schedule, fragment order and name pool — two builds share nothing.",
+    f5_t: "Anti-dump & anti-debug", f5_d: "string.dump interception, hook fingerprinting, memory erasure and environment probing — the output actively resists dumping and debugger attach at runtime.",
+    f6_t: "Identity gate", f6_d: "A type-lock proof embedded in the decryption chain. Stub it, skip it or reorder it and the keys silently corrupt — the attacker gets garbage, not source.",
+    f7_t: "Control-flow armor", f7_d: "Before compilation: identifier renaming, integer noise, loop unrolling, control-flow flattening, constant protection and MBA arithmetic destroy the source shape.",
+    f8_t: "Zero plaintext leakage", f8_d: "loadstring, API names, string constants, entry points — none appear in the output. Verified against real obfuscators by counting plaintext matches.",
+    f9_t: "Three security tiers", f9_d: "lite (AST-level only, fastest), standard (VM + encryption + anti-dump) and max (everything plus integrity, anti-debug and the identity gate).",
+    f10_t: "Themed name pools", f10_d: "Identifiers are drawn from themed pools — Arknights, Zenless, Genshin, Star Rail, Wuthering Waves, Endfield — with random suffixes, so obfuscated names look native, not mechanical.",
+    about_pipe: "The protection pipeline",
+    pipe1: "Parse the Luau source and strip macros and comments.",
+    pipe2: "AST-level defenses: rename identifiers, inject integer noise, unroll loops, flatten control flow, protect constants, apply MBA arithmetic.",
+    pipe3: "Compile the mangled AST into custom VM bytecode with a randomized instruction encoding.",
+    pipe4: "Derive a per-build key schedule from the seed — every string, fragment and layer gets its own key.",
+    pipe5: "Generate the themed VM runtime that will execute the bytecode.",
+    pipe6: "LZ77-compress the program and split it into multistage fragments.",
+    pipe7: "Speck-encrypt every fragment and bind them together with integrity checks.",
+    pipe8: "Emit the bootstrap shell — verification first, keys released last — then minify and validate the output.",
+    about_tiers: "Security tiers",
+    tlite: "lite ⚡ — AST-level obfuscation only: renaming, control flow, constant protection. No VM, no encryption. Fastest output, minimal overhead — for quick iteration.",
+    tstd: "standard 🛡 — VM + Speck encryption + LZ77 + anti-dump. The production default for most scripts.",
+    tmax: "max 🔥 — everything: multistage fragmentation, integrity checks, anti-debug, identity gate. For high-value scripts.",
     about_honest: "What CSA is honest about",
-    hon1: "No obfuscator makes code mathematically impossible to reverse — CSA raises the cost until it is not worth paying.",
-    hon2: "The strength comes from the VM and the cipher, not from a marketing page.",
-    hon3: "Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.",
+    hon1: "No obfuscator makes code mathematically impossible to reverse — CSA raises the cost of reversing until it is not worth paying.",
+    hon2: "The strength comes from the VM and the cipher, not from the marketing page — every claim maps to a stage in the pipeline above.",
+    hon3: "Every comparison on this page is reproducible — same input, plaintext leaks counted by grep, protection depth measured layer by layer.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
     note2: "Download the CLI →",
     total_obf: "Total obfuscations", total_dl: "Downloads",
@@ -674,19 +714,37 @@ const I18N = {
     tier_lite: "lite", tier_lite_sub: "快速", tier_standard: "standard", tier_standard_sub: "均衡", tier_max: "max", tier_max_sub: "最强",
     theme_ak: "明日方舟", theme_zzz: "绝区零", theme_gi: "原神", theme_sr: "星穹铁道", theme_ww: "鸣潮", theme_ef: "终末地", theme_rnd: "随机",
     st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "泄漏",
-    about_title: "为什么 CSA 划出斩杀线",
-    about_p1: "大多数 Luau 混淆器只做到重命名变量和 XOR 字符串。CSA 走得更远——它把你的脚本编译成自包含的虚拟机，用标准密码算法为每个字符串配一把独立的密钥加密，再整体包进层层解密链，逆向者必须完整解开每一层，才能看到你的一行逻辑。",
+        about_title: "为什么 CSA 划出斩杀线",
+    about_p1: "大多数 Luau 混淆器止步于重命名变量和 XOR 字符串——源码的骨架还在，逻辑也就还在。CSA 走得更远：它把你的脚本编译进一个自包含的虚拟机，用标准密码算法给每个字符串配一把独立密钥加密，再整体包进层层解密链——逆向者必须把每一层完整解开，才看得到你的一行逻辑。",
+    about_p2: "这条链两头都在工作。在 VM 出现之前，CSA 已经把源码拆散——标识符重命名、整数噪声、循环展开、控制流扁平化、MBA 算术。编译之后，它压缩、分片、加密载荷，交给一个引导壳：先自验完整性，盯住 dump 和调试器，最后才释放密钥。每次构建都不同：种子、VM 布局、密钥表、名字池、分片顺序——没有指纹可循，没有东西可复用。",
     about_what: "CSA 做了什么",
-    f1_t: "虚拟化字节码", f1_d: "你的逻辑跑在自定义 VM 上——不是原生 Luau，静态分析撞墙。",
-    f2_t: "标准密码 + 每串独立密钥", f2_d: "Speck-CTR，每个字符串独立 128 位密钥，不是自制 XOR。",
-    f3_t: "分层解密", f3_d: "压缩 → 分片 → 加密 → 完整性。破一层，其余仍守得住。",
-    f4_t: "反 dump & 反调试", f4_d: "产物运行时反击——string.dump 拦截、hook 指纹、内存擦除。",
-    f5_t: "身份门", f5_d: "类型锁死校验，攻击者 stub 或跳过就会静默污染密钥。",
-    f6_t: "零明文泄漏", f6_d: "loadstring、API 名、字符串——产物里都不出现，对照真实混淆器实测。",
+    f1_t: "虚拟化字节码", f1_d: "你的脚本编译成自定义 VM 字节码，指令编码每次构建随机——没有原生 Luau 操作码，没有 loadstring，静态分析无从下手。",
+    f2_t: "标准密码 + 每串独立密钥", f2_d: "每个字符串用 Speck-CTR 加密，独立 128 位密钥，全部由当次构建的种子派生。没有共享常量，不是自制 XOR。",
+    f3_t: "分层解密链", f3_d: "压缩 → 分片 → 加密 → 完整性。运行时一段一段解开链条；破掉一层，其余各层依旧把守。",
+    f4_t: "每构建多态", f4_d: "随机种子下，同一脚本每次混淆都产出不同的 VM 布局、密钥表、分片顺序和名字池——两次构建之间没有任何共同点。",
+    f5_t: "反 dump & 反调试", f5_d: "string.dump 拦截、hook 指纹识别、内存擦除、环境探测——产物在运行时主动抵抗 dump 和调试器挂载。",
+    f6_t: "身份门", f6_d: "解密链里埋着类型锁校验：stub 掉、跳过或调换顺序，密钥静默污染——攻击者拿到的是乱码，不是源码。",
+    f7_t: "控制流护甲", f7_d: "编译之前：标识符重命名、整数噪声、循环展开、控制流扁平化、常量保护、MBA 算术——源码形状先被彻底摧毁。",
+    f8_t: "零明文泄漏", f8_d: "loadstring、API 名、字符串常量、入口点——产物里一个都不出现。与真实混淆器对比、按明文命中数实测。",
+    f9_t: "三档强度", f9_d: "lite（仅 AST，最快）、standard（VM + 加密 + 反 dump）、max（全套，加完整性与反调试）。按需选档。",
+    f10_t: "主题词库命名", f10_d: "标识符取自主题词库——明日方舟、绝区零、原神、星穹铁道、鸣潮、终末地——再加随机后缀，混淆后的名字像原生代码，不像机器产物。",
+    about_pipe: "防护管线",
+    pipe1: "解析 Luau 源码，剥离宏与注释。",
+    pipe2: "AST 级防御：重命名标识符、注入整数噪声、展开循环、扁平化控制流、保护常量、套 MBA 算术。",
+    pipe3: "把面目全非的 AST 编译成自定义 VM 字节码，指令编码随机。",
+    pipe4: "由种子派生本次构建的密钥表——每个字符串、每片分片、每层都有独立密钥。",
+    pipe5: "生成带主题命名的 VM 运行时。",
+    pipe6: "LZ77 压缩程序，切成多阶段分片。",
+    pipe7: "每片用 Speck 加密，并以完整性校验互相绑定。",
+    pipe8: "输出引导壳：先校验，最后才放行密钥——然后压缩混淆并验证产物。",
+    about_tiers: "三档强度",
+    tlite: "lite ⚡ — 仅 AST 级混淆：重命名、控制流、常量保护。无 VM、无加密。最快、开销最小——适合快速迭代。",
+    tstd: "standard 🛡 — VM + Speck 加密 + LZ77 + 反 dump。多数生产脚本的默认选择。",
+    tmax: "max 🔥 — 全套：多阶段分片、完整性校验、反调试、身份门。给高价值脚本。",
     about_honest: "CSA 诚实的声明",
     hon1: "没有混淆器能让代码在数学上不可逆——CSA 把逆向成本抬高到不值当。",
-    hon2: "强度来自 VM 和密码学，不是营销页面。",
-    hon3: "上面每个数字都可复现——同一输入跑的对比，明文泄漏用 grep 数出来。",
+    hon2: "强度来自 VM 和密码学，不来自营销页——上面每句话都对应管线里的一个真实环节。",
+    hon3: "本页所有对比都可复现——同一输入、明文泄漏按 grep 计数、防护深度逐层测量。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
     note2: "下载 CLI →",
     total_obf: "总混淆次数", total_dl: "下载次数",
