@@ -329,8 +329,6 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
     radial-gradient(140% 200% at var(--gx, 50%) var(--gy, -25%), rgba(255,255,255,.62) 0%, rgba(255,255,255,.16) 30%, rgba(255,255,255,0) 56%),
     linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.08) 46%, rgba(255,255,255,0) 62%),
     linear-gradient(135deg, #6366f1 0%, #8b5cf6 52%, #22d3ee 100%);
-  backdrop-filter: blur(10px) saturate(170%);
-  -webkit-backdrop-filter: blur(10px) saturate(170%);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.62),
     inset 0 -14px 26px rgba(0,0,0,.24),
@@ -451,12 +449,10 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
 .note a { color: var(--cyan); font-weight: 600; }
 .note a:hover { text-decoration: underline; }
 
-/* ═══════════════════════════ REVEAL ANIMATION ═══════════════════════════ */
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1); }
-.reveal.in { opacity: 1; transform: none; }
+/* reveal animation removed — opacity:0 + translateY caused black flashes and
+   render lag where backdrop-filter sits; content is now visible immediately */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  .reveal { opacity: 1; transform: none; }
 }
 </style>
 </head>
@@ -495,7 +491,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
       <p class="hero-sub" data-i18n="hero_sub">The kill line. Measured, not marketing.</p>
       <span class="hero-badge" data-i18n="hero_kill">⚔ Anything weaker at any price gets cut</span>
 
-      <div class="kill-panel reveal">
+      <div class="kill-panel">
         <div class="kill-head">
           <h2 data-i18n="cut_title">Cut by the kill line</h2>
           <span class="tag" data-i18n="cut_tag">12 eliminated</span>
@@ -521,7 +517,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
   <!-- ═══════════ EDITOR ═══════════ -->
   <section class="editor-section">
     <div class="wrap">
-      <div class="editor-grid reveal">
+      <div class="editor-grid">
         <div class="editor-pane">
           <div class="pane-bar">
             <div class="left">
@@ -557,7 +553,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
         </div>
       </div>
 
-      <div class="controls reveal">
+      <div class="controls">
         <button class="btn-obfuscate" id="btn" disabled>
           <span class="bolt">⚡</span><span data-i18n="btn_obf">Obfuscate</span>
         </button>
@@ -572,7 +568,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
         <button class="btn-ghost" id="download" disabled>⬇ <span data-i18n="btn_dl">Download .lua</span></button>
       </div>
 
-      <div class="stats-row reveal" id="stats" style="display:none;">
+      <div class="stats-row" id="stats" style="display:none;">
         <div class="stat"><span class="k" data-i18n="st_tier">Tier</span><span class="v accent" id="stat-tier">-</span></div>
         <div class="stat"><span class="k" data-i18n="st_size">Size</span><span class="v" id="stat-size">-</span></div>
         <div class="stat"><span class="k" data-i18n="st_ratio">Ratio</span><span class="v" id="stat-ratio">-</span></div>
@@ -583,7 +579,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
   </section>
 
   <!-- ═══════════ ABOUT ═══════════ -->
-  <section class="about wrap reveal">
+  <section class="about wrap">
     <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
     <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
     <h3 data-i18n="about_what">What CSA does</h3>
@@ -607,7 +603,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer class="footer">
   <div class="wrap">
-    <div class="tiles reveal">
+    <div class="tiles">
       <div class="tile"><div class="num" id="total-count">—</div><div class="label" data-i18n="total_obf">Total obfuscations</div></div>
       <div class="tile"><div class="num" id="total-downloads">—</div><div class="label" data-i18n="total_dl">Downloads</div></div>
     </div>
@@ -879,11 +875,6 @@ try {
       if (d.downloads !== undefined) $('#total-downloads').textContent = d.downloads;
     });
 } catch (e) {}
-
-const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
-  entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
-}, { threshold: 0.08 }) : null;
-document.querySelectorAll('.reveal').forEach(el => { if (io) io.observe(el); else el.classList.add('in'); });
 
 /* ── liquid-glass sheen: inertial refraction that lags, trails and settles ── */
 const GLASS_SEL = '.status-pill, .seg, .nav-cli, .icon-btn, .btn-ghost, .tier-switch, .btn-obfuscate';
