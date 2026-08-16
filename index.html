@@ -422,6 +422,43 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
 .about h4 { font-size: 14px; font-weight: 800; margin: 22px 0 6px; color: var(--text); letter-spacing: .2px; }
 .about p + p, .about h4 + p, .about p + ul, .about h4 + p { margin-top: 10px; }
 .about ul { margin-bottom: 12px; }
+.about .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+@media (max-width: 720px) { .about .cols2 { grid-template-columns: 1fr; } }
+.mold-card { padding: 18px 20px; border-radius: 15px; background: var(--surface); border: 1px solid var(--border); }
+.mold-card .m-icon { font-size: 26px; margin-bottom: 8px; }
+.mold-card b { display: block; font-size: 15px; color: var(--text); margin-bottom: 8px; }
+.mold-card span { display: block; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.fig { margin: 20px 0 22px; }
+.fig-cap { font-size: 11.5px; color: var(--faint); margin-top: 8px; text-align: center; font-family: var(--mono); letter-spacing: .5px; }
+.code-box { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .code-box { grid-template-columns: 1fr; } }
+.code-box pre { margin: 0; padding: 16px 18px; border-radius: 12px; background: rgba(4,6,12,.7); border: 1px solid var(--border); font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: #a8b6c9; overflow-x: auto; white-space: pre; }
+.code-box pre b { color: var(--cyan); font-weight: 600; }
+.svg-wrap { border-radius: 15px; background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border: 1px solid var(--border); padding: 18px; overflow-x: auto; }
+.svg-wrap svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.chip { padding: 10px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border-strong); font-size: 12.5px; color: var(--muted); }
+.chip i { font-style: normal; margin-right: 6px; }
+.tier-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 14px; }
+.tier-card { padding: 20px; border-radius: 15px; background: var(--surface); border: 1px solid var(--border); }
+.tier-card .t-icon { font-size: 24px; margin-bottom: 8px; }
+.tier-card b { display: block; font-size: 15px; color: var(--text); margin-bottom: 8px; }
+.tier-card p { font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+.tier-card ul { list-style: none; margin: 0 !important; }
+.tier-card li { font-size: 12.5px; margin-bottom: 6px; }
+.tier-card li::before { content: "✓ "; color: var(--cyan); font-weight: 700; }
+table.compare { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+table.compare th, table.compare td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+table.compare th { color: var(--faint); font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+table.compare td.dim { color: var(--text); font-weight: 700; white-space: nowrap; }
+table.compare td.bad { color: var(--muted); }
+table.compare td.good { color: var(--success); }
+details.faq { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; }
+details.faq summary { cursor: pointer; padding: 14px 18px; font-weight: 700; font-size: 14px; color: var(--text); list-style: none; }
+details.faq summary::before { content: "▸ "; color: var(--cyan); }
+details.faq[open] summary::before { content: "▾ "; }
+details.faq p { padding: 0 18px 16px; font-size: 13.5px; }
+.close-p { margin-top: 26px; padding: 20px 22px; border-radius: 15px; background: var(--grad-soft); border: 1px solid var(--border-strong); font-size: 15px !important; color: var(--text) !important; max-width: none !important; }
 
 .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 13px; margin-top: 6px; }
 .feature {
@@ -593,13 +630,20 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
   </section>
 
   <!-- ═══════════ ABOUT ═══════════ -->
-      <section class="about wrap">
+        <section class="about wrap">
     <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
     <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings — the source shape survives, and so does the logic. CSA goes further: it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
     <p data-i18n="about_p2">The chain works in both directions. Before the VM even exists, CSA tears the source apart — identifier renaming, integer noise, loop unrolling, control-flow flattening, MBA arithmetic. After compilation it compresses, fragments and encrypts the payload, then hands it to a bootstrap that verifies its own integrity, watches for dumpers and debuggers, and only then releases the keys. Every build is different: seed, VM layout, key schedule, name pools, fragment order. Nothing to fingerprint, nothing to reuse.</p>
+
     <h3 data-i18n="about_problem">The problem with every other obfuscator</h3>
     <p data-i18n="p3">Every mainstream Luau obfuscator fits one of two molds. The first is the renamer: variables get shuffled, strings get XOR'd with a hardcoded constant, control flow gets a light touch — but the original structure, the call graph and every string's plaintext shape stay one XOR away. The second is the legacy bytecode mangler: it shuffles Lua 5.1 opcodes and hopes nobody bothers. Both molds share the same failure — they protect the surface, not the logic.</p>
     <p data-i18n="p4">The cost of cheap protection is concrete. A dumped script is not just stolen code — it is your anti-cheat's detection logic read line by line, your game economy's price table copied into a competitor's game, your server-side handshake replayed against you, and every security patch you ship reverse-engineered the same day. Obfuscation that slows an attacker by an afternoon is not cheaper than obfuscation that holds for months — it is the most expensive thing you can buy, because it buys nothing.</p>
+    <div class="cols2">
+      <div class="mold-card"><div class="m-icon">🎭</div><b data-i18n="m1_t">The renamer</b><span data-i18n="m1_d">Shuffles identifiers, XORs strings with one hardcoded constant, light control-flow touch. The original structure and every string's plaintext shape stay one XOR away.</span></div>
+      <div class="mold-card"><div class="m-icon">🧱</div><b data-i18n="m2_t">The bytecode mangler</b><span data-i18n="m2_d">Shuffles Lua 5.1 opcodes and hopes nobody bothers. Protects the surface, not the logic — and the surface is one tool away.</span></div>
+    </div>
+    <div class="fig"><div class="fig-cap" data-i18n="fig1_cap">The two molds every mainstream obfuscator fits into.</div></div>
+
     <h3 data-i18n="about_what">What CSA does</h3>
     <div class="feature-grid">
       <div class="feature"><div class="f-icon">🧠</div><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your script compiles to bytecode for a custom VM with per-build randomized instruction encoding — no native Luau opcodes, no loadstring, nothing a static analyzer can anchor on.</span></div>
@@ -613,21 +657,189 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
       <div class="feature"><div class="f-icon">⚙️</div><b data-i18n="f9_t">Three security tiers</b><span data-i18n="f9_d">lite (AST-level only, fastest), standard (VM + encryption + anti-dump) and max (everything plus integrity, anti-debug and the identity gate).</span></div>
       <div class="feature"><div class="f-icon">🎨</div><b data-i18n="f10_t">Themed name pools</b><span data-i18n="f10_d">Identifiers are drawn from themed pools — Arknights, Zenless, Genshin, Star Rail, Wuthering Waves, Endfield — with random suffixes, so obfuscated names look native, not mechanical.</span></div>
     </div>
+
     <h3 data-i18n="about_armor">Inside the armor — layer by layer</h3>
+
     <h4 data-i18n="l1_t">Source destruction — the AST phase</h4>
     <p data-i18n="l1_d">Before anything is compiled, CSA rewrites the source itself. Identifiers are renamed through themed pools with randomized suffixes; integer literals are wrapped in noise expressions that evaluate to the same value; loops are unrolled to varying depths; control flow is flattened into a dispatcher-driven state machine; constants are folded into arithmetic; selected expressions are rewritten through MBA (mixed boolean-arithmetic) identities. The point of this phase is not to stop a determined analyst — it is to destroy every anchor a deobfuscation tool could attach to. The script that reaches the compiler no longer resembles the script you wrote.</p>
+    <div class="fig">
+      <div class="code-box">
+        <pre>-- <b>the script you wrote</b>
+local PRICE_TABLE = { 100, 250, 600 }
+
+local function applyDiscount(price, rate)
+  return price - price * rate
+end
+
+print(applyDiscount(PRICE_TABLE[1], 0.2))</pre>
+        <pre>-- <b>what CSA emits</b> (illustration)
+local Doctor_q7x = select
+local Kaltsit_k2 = { 100, 250, 600 }
+
+local Amiya_3f = function(Mountain_p2, Specter_w1)
+  local W_8z = "x9%{a" .. "Q#2m"  -- ciphertext
+  return Mountain_p2 - Mountain_p2 * Specter_w1
+end
+
+print(Amiya_3f(Kaltsit_k2[1], 0.2))</pre>
+      </div>
+      <div class="fig-cap" data-i18n="code_cap">Left: the script you wrote. Right: themed names, ciphertext strings, no plaintext anchors.</div>
+    </div>
     <h4 data-i18n="l2_t">The virtual machine</h4>
     <p data-i18n="l2_d">The mangled AST compiles to bytecode for a virtual machine that CSA generates per build. The instruction encoding itself is randomized — the same operation is a different numeric opcode in every build, the register layout differs, and the dispatch loop is generated with themed identifiers so no two outputs share a single byte of runtime machinery. Your logic does not run as Luau: there is no loadstring, no string.dump of original bytecode, no native opcode stream for a static analyzer to read. The only thing that runs is CSA's own interpreter — and it only exists in the build you just made.</p>
+    <div class="fig">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 200" width="660" height="200" role="img" aria-label="VM flow">
+          <rect x="16" y="60" width="190" height="64" rx="12" fill="rgba(99,102,241,.18)" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="111" y="88" text-anchor="middle" fill="#e9eef8" font-size="12.5" font-family="monospace" data-i18n="vm1">CSA bytecode (random encoding)</text>
+          <text x="111" y="108" text-anchor="middle" fill="#97a3b8" font-size="10" font-family="monospace">per-build opcodes</text>
+          <line x1="206" y1="92" x2="248" y2="92" stroke="#22d3ee" stroke-width="2"/>
+          <polygon points="248,87 258,92 248,97" fill="#22d3ee"/>
+          <rect x="258" y="60" width="190" height="64" rx="12" fill="rgba(139,92,246,.18)" stroke="#8b5cf6" stroke-width="1.5"/>
+          <text x="353" y="88" text-anchor="middle" fill="#e9eef8" font-size="12.5" font-family="monospace" data-i18n="vm2">VM interpreter (generated for this build)</text>
+          <text x="353" y="108" text-anchor="middle" fill="#97a3b8" font-size="10" font-family="monospace">themed dispatch loop</text>
+          <line x1="448" y1="92" x2="490" y2="92" stroke="#22d3ee" stroke-width="2"/>
+          <polygon points="490,87 500,92 490,97" fill="#22d3ee"/>
+          <rect x="500" y="60" width="144" height="64" rx="12" fill="rgba(34,211,238,.16)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="572" y="88" text-anchor="middle" fill="#e9eef8" font-size="12.5" font-family="monospace" data-i18n="vm3">Your logic executes</text>
+          <text x="572" y="108" text-anchor="middle" fill="#97a3b8" font-size="10" font-family="monospace">nothing else</text>
+          <rect x="130" y="152" width="400" height="34" rx="17" fill="rgba(251,113,133,.10)" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <line x1="130" y1="169" x2="530" y2="169" stroke="#fb7185" stroke-width="2"/>
+          <text x="330" y="173" text-anchor="middle" fill="#fb7185" font-size="11.5" font-family="monospace" data-i18n="vm4">loadstring · string.dump · native opcodes — none of it exists here</text>
+        </svg>
+      </div>
+      <div class="fig-cap" data-i18n="vm_cap">The only thing that runs is CSA's own interpreter.</div>
+    </div>
+
     <h4 data-i18n="l3_t">The cipher</h4>
     <p data-i18n="l3_d">Every string is encrypted with Speck-CTR under an independent 128-bit key, derived from the per-build seed through the key schedule. There is no global constant to extract, no shared XOR key to recover from one string and reuse on all the others — each string must be broken individually, and none of them exist in the output until the runtime decrypts them on demand.</p>
+    <div class="fig">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 190" width="660" height="190" role="img" aria-label="Key schedule">
+          <circle cx="70" cy="75" r="42" fill="rgba(99,102,241,.22)" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="70" y="81" text-anchor="middle" fill="#e9eef8" font-size="14" font-weight="700" font-family="monospace" data-i18n="ks1">SEED</text>
+          <g font-family="monospace" text-anchor="middle">
+            <rect x="180" y="34" width="96" height="40" rx="10" fill="rgba(139,92,246,.16)" stroke="#8b5cf6" stroke-width="1.2"/>
+            <text x="228" y="59" fill="#e9eef8" font-size="12.5">K1</text>
+            <rect x="300" y="34" width="96" height="40" rx="10" fill="rgba(139,92,246,.16)" stroke="#8b5cf6" stroke-width="1.2"/>
+            <text x="348" y="59" fill="#e9eef8" font-size="12.5">K2</text>
+            <rect x="420" y="34" width="96" height="40" rx="10" fill="rgba(139,92,246,.16)" stroke="#8b5cf6" stroke-width="1.2"/>
+            <text x="468" y="59" fill="#e9eef8" font-size="12.5">K3</text>
+            <rect x="540" y="34" width="96" height="40" rx="10" fill="rgba(139,92,246,.16)" stroke="#8b5cf6" stroke-width="1.2"/>
+            <text x="588" y="59" fill="#e9eef8" font-size="12.5">Kn</text>
+            <rect x="180" y="124" width="96" height="40" rx="10" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="1.2"/>
+            <text x="228" y="149" fill="#e9eef8" font-size="12.5">S1</text>
+            <rect x="300" y="124" width="96" height="40" rx="10" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="1.2"/>
+            <text x="348" y="149" fill="#e9eef8" font-size="12.5">S2</text>
+            <rect x="420" y="124" width="96" height="40" rx="10" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="1.2"/>
+            <text x="468" y="149" fill="#e9eef8" font-size="12.5">S3</text>
+            <rect x="540" y="124" width="96" height="40" rx="10" fill="rgba(34,211,238,.14)" stroke="#22d3ee" stroke-width="1.2"/>
+            <text x="588" y="149" fill="#e9eef8" font-size="12.5">Sn</text>
+          </g>
+          <g stroke="#22d3ee" stroke-width="1.2">
+            <line x1="112" y1="70" x2="180" y2="54"/><line x1="112" y1="80" x2="300" y2="54"/><line x1="112" y1="88" x2="420" y2="54"/><line x1="112" y1="94" x2="540" y2="54"/>
+            <line x1="228" y1="74" x2="228" y2="124"/><line x1="348" y1="74" x2="348" y2="124"/><line x1="468" y1="74" x2="468" y2="124"/><line x1="588" y1="74" x2="588" y2="124"/>
+          </g>
+        </svg>
+      </div>
+      <div class="fig-cap" data-i18n="ks_cap">No global constant, no shared XOR key — every string gets its own key.</div>
+    </div>
+
     <h4 data-i18n="l4_t">The decryption chain</h4>
     <p data-i18n="l4_d">The program is LZ77-compressed, split into multistage fragments, and each fragment is encrypted and bound to the next with integrity checks. The bootstrap unwinds the chain in order: it verifies each stage before releasing the keys to the next. Break one layer and the rest still hold. Skip one stage and the keys for everything after it are garbage.</p>
+    <div class="fig">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 420" width="660" height="420" role="img" aria-label="Layer stack">
+          <g font-family="monospace">
+            <rect x="16" y="10" width="280" height="46" rx="10" fill="#6366f1"/>
+            <text x="36" y="38" fill="#ffffff" font-size="12.5" font-weight="700">BOOTSTRAP</text>
+            <text x="320" y="38" fill="#97a3b8" font-size="11.5" data-i18n="ch1">the only visible part — verifies first, releases keys last</text>
+            <rect x="16" y="66" width="280" height="46" rx="10" fill="#8b5cf6"/>
+            <text x="36" y="94" fill="#ffffff" font-size="12.5" font-weight="700">INTEGRITY</text>
+            <text x="320" y="94" fill="#97a3b8" font-size="11.5" data-i18n="ch2">every fragment bound to the next — tampering is detected</text>
+            <rect x="16" y="122" width="280" height="46" rx="10" fill="#22d3ee"/>
+            <text x="36" y="150" fill="#04222b" font-size="12.5" font-weight="700">SPECK-CTR</text>
+            <text x="320" y="150" fill="#97a3b8" font-size="11.5" data-i18n="ch3">independent 128-bit key per fragment</text>
+            <rect x="16" y="178" width="280" height="46" rx="10" fill="#34d399"/>
+            <text x="36" y="206" fill="#04222b" font-size="12.5" font-weight="700">FRAGMENTS</text>
+            <text x="320" y="206" fill="#97a3b8" font-size="11.5" data-i18n="ch4">breaking one fragment yields one fragment</text>
+            <rect x="16" y="234" width="280" height="46" rx="10" fill="#a78bfa"/>
+            <text x="36" y="262" fill="#04222b" font-size="12.5" font-weight="700">LZ77</text>
+            <text x="320" y="262" fill="#97a3b8" font-size="11.5" data-i18n="ch5">the first layer of the unwind</text>
+            <rect x="16" y="290" width="280" height="46" rx="10" fill="#f472b6"/>
+            <text x="36" y="318" fill="#04222b" font-size="12.5" font-weight="700">VM BYTECODE</text>
+            <text x="320" y="318" fill="#97a3b8" font-size="11.5" data-i18n="ch6">randomized instruction encoding — no native opcodes</text>
+            <rect x="16" y="346" width="280" height="46" rx="10" fill="#fbbf24"/>
+            <text x="36" y="374" fill="#04222b" font-size="12.5" font-weight="700">YOUR LOGIC</text>
+            <text x="320" y="374" fill="#97a3b8" font-size="11.5" data-i18n="ch7">your logic lives only here</text>
+          </g>
+        </svg>
+      </div>
+      <div class="fig-cap" data-i18n="chain_cap">The full stack an attacker must unwind, in order.</div>
+    </div>
+
     <h4 data-i18n="l5_t">The bootstrap and the identity gate</h4>
     <p data-i18n="l5_d">The bootstrap is the only part of the output that ever executes in plain sight, and it is built to give away nothing: it verifies its own integrity first and releases keys last. Inside the chain sits a type-lock proof — an identity gate that must succeed exactly as generated. Stub it, skip it or reorder it, and the keys silently corrupt: the attacker is not stopped by an error message they can patch out, they are handed a program that produces garbage.</p>
+    <div class="fig">
+      <div class="svg-wrap">
+        <svg viewBox="0 0 660 140" width="660" height="140" role="img" aria-label="Bootstrap flow">
+          <g font-family="monospace" text-anchor="middle">
+            <rect x="14" y="26" width="140" height="52" rx="12" fill="rgba(99,102,241,.18)" stroke="#6366f1" stroke-width="1.5"/>
+            <text x="84" y="48" fill="#e9eef8" font-size="11.5" data-i18n="bt1">verify own integrity</text>
+            <text x="84" y="66" fill="#97a3b8" font-size="9.5">stage 1</text>
+            <rect x="180" y="26" width="140" height="52" rx="12" fill="rgba(139,92,246,.18)" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="250" y="48" fill="#e9eef8" font-size="11.5" data-i18n="bt2">decrypt stage by stage</text>
+            <text x="250" y="66" fill="#97a3b8" font-size="9.5">stage 2</text>
+            <rect x="346" y="26" width="140" height="52" rx="12" fill="rgba(34,211,238,.16)" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="416" y="48" fill="#e9eef8" font-size="11.5" data-i18n="bt3">release keys</text>
+            <text x="416" y="66" fill="#97a3b8" font-size="9.5">stage 3</text>
+            <rect x="512" y="26" width="134" height="52" rx="12" fill="rgba(52,211,153,.16)" stroke="#34d399" stroke-width="1.5"/>
+            <text x="579" y="48" fill="#e9eef8" font-size="11.5" data-i18n="bt4">start the VM</text>
+            <text x="579" y="66" fill="#97a3b8" font-size="9.5">stage 4</text>
+          </g>
+          <g stroke="#22d3ee" stroke-width="2" fill="#22d3ee">
+            <line x1="154" y1="52" x2="176" y2="52"/><polygon points="176,48 184,52 176,56"/>
+            <line x1="320" y1="52" x2="342" y2="52"/><polygon points="342,48 350,52 342,56"/>
+            <line x1="486" y1="52" x2="508" y2="52"/><polygon points="508,48 516,52 508,56"/>
+          </g>
+          <rect x="150" y="98" width="360" height="32" rx="16" fill="rgba(251,113,133,.10)" stroke="#fb7185" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="330" y="119" text-anchor="middle" fill="#fb7185" font-size="11.5" font-family="monospace" data-i18n="bt5">tampered → keys silently corrupt</text>
+        </svg>
+      </div>
+      <div class="fig-cap" data-i18n="boot_cap">Verification first, keys last.</div>
+    </div>
+
     <h4 data-i18n="l6_t">Runtime armor</h4>
     <p data-i18n="l6_d">While the protected script runs, it watches its environment. string.dump is intercepted so the live bytecode cannot be dumped; hook signatures are fingerprinted so debugger-style instrumentation is noticed; sensitive values are erased from memory the moment they are consumed; the environment is probed for the signatures of tampering. An attacker who wants the logic has to defeat the armor while it is fighting back.</p>
+    <div class="fig">
+      <div class="chips">
+        <span class="chip"><i>🛡️</i><span data-i18n="armor1">string.dump intercepted — live bytecode cannot be dumped</span></span>
+        <span class="chip"><i>🕵️</i><span data-i18n="armor2">hook signatures fingerprinted — instrumentation is noticed</span></span>
+        <span class="chip"><i>🧽</i><span data-i18n="armor3">sensitive values erased the moment they are consumed</span></span>
+        <span class="chip"><i>📡</i><span data-i18n="armor4">environment probed for tampering signatures</span></span>
+      </div>
+      <div class="fig-cap" data-i18n="armor_cap">The output fights back while it runs.</div>
+    </div>
     <h3 data-i18n="about_poly">Per-build polymorphism</h3>
     <p data-i18n="poly_p">Fingerprinting is how most protection gets broken at scale: an attacker breaks one sample, writes a tool, and every script from the same obfuscator falls. CSA is built so that tool can never be written. With a random seed, every build derives its own VM instruction encoding, key schedule, fragment order, name pools and bootstrap shape. Two obfuscations of the same script share nothing — a break against one build teaches nothing about the next.</p>
+    <div class="fig">
+      <div class="code-box">
+        <pre><b>build A</b> · random seed
+local Surtr_x9 = { 100, 250, 600 }
+local Amiya_3f = function(Mountain_p2, Specter_w1)
+  local W_8z = "x9%{a" .. "Q#2m"
+  ...
+end</pre>
+        <pre><b>build B</b> · same script
+local Ling_p1 = { 100, 250, 600 }
+local Blaze_7k = function(W_3m, Texas_k2)
+  local P_4r = "m#8L" .. "z!2K"
+  ...
+end</pre>
+      </div>
+      <div class="fig-cap" data-i18n="poly_cap">Same script, two builds — nothing in common.</div>
+    </div>
+
     <h3 data-i18n="about_pipe">The protection pipeline</h3>
     <ul>
       <li data-i18n="pipe1">Parse the Luau source and strip macros and comments.</li>
@@ -639,12 +851,47 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
       <li data-i18n="pipe7">Speck-encrypt every fragment and bind them together with integrity checks.</li>
       <li data-i18n="pipe8">Emit the bootstrap shell — verification first, keys released last — then minify and validate the output.</li>
     </ul>
+
     <h3 data-i18n="about_tiers">Security tiers</h3>
-    <ul>
-      <li data-i18n="tlite">lite ⚡ — AST-level obfuscation only: renaming, control flow, constant protection. No VM, no encryption. Fastest output, minimal overhead — for quick iteration.</li>
-      <li data-i18n="tstd">standard 🛡 — VM + Speck encryption + LZ77 + anti-dump. The production default for most scripts.</li>
-      <li data-i18n="tmax">max 🔥 — everything: multistage fragmentation, integrity checks, anti-debug, identity gate. For high-value scripts.</li>
-    </ul>
+    <div class="tier-cards">
+      <div class="tier-card"><div class="t-icon">⚡</div><b data-i18n="tlite_t">lite ⚡</b><p data-i18n="tlite_d">AST-level obfuscation only. Fastest output, minimal overhead — for quick iteration.</p><ul>
+        <li data-i18n="tb1_1">identifier renaming (themed pools)</li>
+        <li data-i18n="tb1_2">integer noise + loop unrolling</li>
+        <li data-i18n="tb1_3">control-flow flattening</li>
+      </ul></div>
+      <div class="tier-card"><div class="t-icon">🛡️</div><b data-i18n="tstd_t">standard 🛡</b><p data-i18n="tstd_d">The production default for most scripts.</p><ul>
+        <li data-i18n="tb2_1">everything in lite</li>
+        <li data-i18n="tb2_2">custom VM + randomized instruction encoding</li>
+        <li data-i18n="tb2_3">Speck-CTR per-string encryption + LZ77</li>
+        <li data-i18n="tb2_4">anti-dump runtime</li>
+      </ul></div>
+      <div class="tier-card"><div class="t-icon">🔥</div><b data-i18n="tmax_t">max 🔥</b><p data-i18n="tmax_d">Everything, for high-value scripts.</p><ul>
+        <li data-i18n="tb3_1">everything in standard</li>
+        <li data-i18n="tb3_2">multistage fragmentation + integrity binding</li>
+        <li data-i18n="tb3_3">anti-debug + environment probing</li>
+        <li data-i18n="tb3_4">identity gate (type-lock proof)</li>
+      </ul></div>
+    </div>
+
+    <h3 data-i18n="comp_t">CSA vs the typical obfuscator</h3>
+    <table class="compare">
+      <tr><th data-i18n="th_dim">Dimension</th><th data-i18n="th_typ">Typical obfuscator</th><th data-i18n="th_csa">CSA</th></tr>
+      <tr><td class="dim" data-i18n="c1d">Execution</td><td class="bad" data-i18n="c1b">native Luau runs the logic — one dump away</td><td class="good" data-i18n="c1g">custom VM with per-build randomized encoding</td></tr>
+      <tr><td class="dim" data-i18n="c2d">String protection</td><td class="bad" data-i18n="c2b">one XOR constant for everything</td><td class="good" data-i18n="c2g">Speck-CTR, independent 128-bit key per string</td></tr>
+      <tr><td class="dim" data-i18n="c3d">Control flow</td><td class="bad" data-i18n="c3b">light flattening, anchors survive</td><td class="good" data-i18n="c3g">flattening + unrolling + MBA before compilation</td></tr>
+      <tr><td class="dim" data-i18n="c4d">Runtime armor</td><td class="bad" data-i18n="c4b">none — dump and debug freely</td><td class="good" data-i18n="c4g">anti-dump, anti-debug, memory erasure, identity gate</td></tr>
+      <tr><td class="dim" data-i18n="c5d">Per-build randomness</td><td class="bad" data-i18n="c5b">same output shape every time — fingerprintable</td><td class="good" data-i18n="c5g">VM, keys, fragments, names all re-derived per seed</td></tr>
+      <tr><td class="dim" data-i18n="c6d">Plaintext leakage</td><td class="bad" data-i18n="c6b">loadstring, API names, strings visible</td><td class="good" data-i18n="c6g">zero — measured by grep</td></tr>
+    </table>
+
+    <h3 data-i18n="faq_t">Questions, answered honestly</h3>
+    <details class="faq"><summary data-i18n="q1">Will the obfuscated script run slower?</summary><p data-i18n="a1">Depends on the tier. lite adds almost no overhead — it is source-level rewriting. standard and max run your logic inside the VM interpreter, so CPU-bound hot loops pay a constant factor. That is the price of not running as Luau: performance is the only thing you trade for protection. For typical game scripts — logic, UI handlers, economy checks — the difference is invisible; if you are obfuscating a physics kernel, measure it first and pick the tier accordingly.</p></details>
+    <details class="faq"><summary data-i18n="q2">The obfuscated script errors — how do I debug it?</summary><p data-i18n="a2">Keep the original source; that is your debugging copy. Runtime errors still surface normally, but stack traces now point into obfuscated code with themed names. Our workflow: reproduce the error on the original, fix it, re-obfuscate. The obfuscator never changes what your code does — only what it looks like.</p></details>
+    <details class="faq"><summary data-i18n="q3">Does obfuscating the same script twice give the same output?</summary><p data-i18n="a3">No — and that is deliberate. With a random seed, every build re-derives the VM instruction encoding, the key schedule, the fragment order and the name pools. Two builds of the same script share nothing, so a break against one build teaches nothing about the next.</p></details>
+    <details class="faq"><summary data-i18n="q4">What is a fixed seed for, then?</summary><p data-i18n="a4">Reproducibility. A fixed seed rebuilds the exact same output — useful for testing, CI comparisons and support. The tradeoff: reusing one seed across many scripts gives them a common fingerprint, which is exactly what random builds avoid. Rule of thumb: random seed in production, fixed seed in the test pipeline.</p></details>
+    <details class="faq"><summary data-i18n="q5">What exactly changes between the tiers?</summary><p data-i18n="a5">lite is source-level only — renaming, noise, flattening. standard adds the VM, the Speck encryption and LZ77 plus the anti-dump runtime: that is where real protection starts. max adds multistage fragmentation with integrity binding, anti-debug, environment probing and the identity gate. Think of it as: lite for iteration, standard for production, max for high-value logic.</p></details>
+    <details class="faq"><summary data-i18n="q6">Where does obfuscation actually run?</summary><p data-i18n="a6">In your browser, locally. The engine is compiled to WebAssembly and runs entirely on your machine — your script never leaves it. The same engine ships as a CLI binary for build pipelines, with the same tiers, seeds and themes.</p></details>
+
     <h3 data-i18n="about_honest">The honest truth about obfuscation</h3>
     <p data-i18n="honest_p">No obfuscator makes code mathematically impossible to reverse — a determined analyst with unlimited time can eventually recover anything that runs. What obfuscation actually buys is cost asymmetry: it makes recovering your logic cost more than writing it, more than licensing it, more than ignoring it. CSA's entire design optimizes that asymmetry — every layer exists to raise the price, and every build is unique so the price can never be amortized.</p>
     <ul>
@@ -652,6 +899,7 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
       <li data-i18n="hon2">The strength comes from the VM and the cipher, not from the marketing page — every claim maps to a stage in the pipeline above.</li>
       <li data-i18n="hon3">Every comparison on this page is reproducible — same input, plaintext leaks counted by grep, protection depth measured layer by layer.</li>
     </ul>
+
     <h3 data-i18n="about_meas">How the numbers are measured</h3>
     <p data-i18n="meas_p">Every claim on this page is reproducible. Comparisons run on the same input script, with the same tier settings, across every obfuscator listed. Plaintext leakage is counted mechanically — grep for loadstring, API names and string constants in the raw output. The pipeline above is not a marketing metaphor: it is the engine's actual compile order, and each stage maps to a measurable property of the output.</p>
     <ul>
@@ -659,6 +907,8 @@ textarea.code::-webkit-scrollbar-corner { background: transparent; }
       <li data-i18n="m2">Leakage counted by grep over the raw output — no manual filtering.</li>
       <li data-i18n="m3">Layer depth verified by stripping layers one at a time and checking what survives.</li>
     </ul>
+
+    <p class="close-p" data-i18n="close_p">That is the whole story: destroy the source, hide the execution, encrypt everything, bind it with integrity, fight back at runtime, and make every build unique so the cost can never be amortized. Try it above — paste a script, pick a tier, and see what comes out. If it holds up under your own grep, it holds up.</p>
   </section>
 </main>
 
@@ -692,12 +942,15 @@ const I18N = {
     tier_lite: "lite", tier_lite_sub: "fast", tier_standard: "standard", tier_standard_sub: "balanced", tier_max: "max", tier_max_sub: "maximum",
     theme_ak: "Arknights", theme_zzz: "Zenless", theme_gi: "Genshin", theme_sr: "Star Rail", theme_ww: "Wuthering Waves", theme_ef: "Endfield", theme_rnd: "Random",
     st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Leakage",
-            about_title: "Why CSA draws the kill line",
+                about_title: "Why CSA draws the kill line",
     about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings — the source shape survives, and so does the logic. CSA goes further: it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
     about_p2: "The chain works in both directions. Before the VM even exists, CSA tears the source apart — identifier renaming, integer noise, loop unrolling, control-flow flattening, MBA arithmetic. After compilation it compresses, fragments and encrypts the payload, then hands it to a bootstrap that verifies its own integrity, watches for dumpers and debuggers, and only then releases the keys. Every build is different: seed, VM layout, key schedule, name pools, fragment order. Nothing to fingerprint, nothing to reuse.",
     about_problem: "The problem with every other obfuscator",
     p3: "Every mainstream Luau obfuscator fits one of two molds. The first is the renamer: variables get shuffled, strings get XOR'd with a hardcoded constant, control flow gets a light touch — but the original structure, the call graph and every string's plaintext shape stay one XOR away. The second is the legacy bytecode mangler: it shuffles Lua 5.1 opcodes and hopes nobody bothers. Both molds share the same failure — they protect the surface, not the logic.",
     p4: "The cost of cheap protection is concrete. A dumped script is not just stolen code — it is your anti-cheat's detection logic read line by line, your game economy's price table copied into a competitor's game, your server-side handshake replayed against you, and every security patch you ship reverse-engineered the same day. Obfuscation that slows an attacker by an afternoon is not cheaper than obfuscation that holds for months — it is the most expensive thing you can buy, because it buys nothing.",
+    m1_t: "The renamer", m1_d: "Shuffles identifiers, XORs strings with one hardcoded constant, light control-flow touch. The original structure and every string's plaintext shape stay one XOR away.",
+    m2_t: "The bytecode mangler", m2_d: "Shuffles Lua 5.1 opcodes and hopes nobody bothers. Protects the surface, not the logic — and the surface is one tool away.",
+    fig1_cap: "The two molds every mainstream obfuscator fits into.",
     about_what: "What CSA does",
     f1_t: "Virtualized bytecode", f1_d: "Your script compiles to bytecode for a custom VM with per-build randomized instruction encoding — no native Luau opcodes, no loadstring, nothing a static analyzer can anchor on.",
     f2_t: "Standard cipher, per-string keys", f2_d: "Every string is encrypted with Speck-CTR under its own independent 128-bit key, derived from the per-build seed. No shared constant, no in-house XOR.",
@@ -716,8 +969,19 @@ const I18N = {
     l4_t: "The decryption chain", l4_d: "The program is LZ77-compressed, split into multistage fragments, and each fragment is encrypted and bound to the next with integrity checks. The bootstrap unwinds the chain in order: it verifies each stage before releasing the keys to the next. Break one layer and the rest still hold. Skip one stage and the keys for everything after it are garbage.",
     l5_t: "The bootstrap and the identity gate", l5_d: "The bootstrap is the only part of the output that ever executes in plain sight, and it is built to give away nothing: it verifies its own integrity first and releases keys last. Inside the chain sits a type-lock proof — an identity gate that must succeed exactly as generated. Stub it, skip it or reorder it, and the keys silently corrupt: the attacker is not stopped by an error message they can patch out, they are handed a program that produces garbage.",
     l6_t: "Runtime armor", l6_d: "While the protected script runs, it watches its environment. string.dump is intercepted so the live bytecode cannot be dumped; hook signatures are fingerprinted so debugger-style instrumentation is noticed; sensitive values are erased from memory the moment they are consumed; the environment is probed for the signatures of tampering. An attacker who wants the logic has to defeat the armor while it is fighting back.",
+    code_cap: "Left: the script you wrote. Right: themed names, ciphertext strings, no plaintext anchors.",
+    vm1: "CSA bytecode (random encoding)", vm2: "VM interpreter (generated for this build)", vm3: "Your logic executes", vm4: "loadstring · string.dump · native opcodes — none of it exists here",
+    vm_cap: "The only thing that runs is CSA's own interpreter.",
+    ks1: "SEED", ks_cap: "No global constant, no shared XOR key — every string gets its own key.",
+    ch1: "the only visible part — verifies first, releases keys last", ch2: "every fragment bound to the next — tampering is detected", ch3: "independent 128-bit key per fragment", ch4: "breaking one fragment yields one fragment", ch5: "the first layer of the unwind", ch6: "randomized instruction encoding — no native opcodes", ch7: "your logic lives only here",
+    chain_cap: "The full stack an attacker must unwind, in order.",
+    bt1: "verify own integrity", bt2: "decrypt stage by stage", bt3: "release keys", bt4: "start the VM", bt5: "tampered → keys silently corrupt",
+    boot_cap: "Verification first, keys last.",
+    armor1: "string.dump intercepted — live bytecode cannot be dumped", armor2: "hook signatures fingerprinted — instrumentation is noticed", armor3: "sensitive values erased the moment they are consumed", armor4: "environment probed for tampering signatures",
+    armor_cap: "The output fights back while it runs.",
     about_poly: "Per-build polymorphism",
     poly_p: "Fingerprinting is how most protection gets broken at scale: an attacker breaks one sample, writes a tool, and every script from the same obfuscator falls. CSA is built so that tool can never be written. With a random seed, every build derives its own VM instruction encoding, key schedule, fragment order, name pools and bootstrap shape. Two obfuscations of the same script share nothing — a break against one build teaches nothing about the next.",
+    poly_cap: "Same script, two builds — nothing in common.",
     about_pipe: "The protection pipeline",
     pipe1: "Parse the Luau source and strip macros and comments.",
     pipe2: "AST-level defenses: rename identifiers, inject integer noise, unroll loops, flatten control flow, protect constants, apply MBA arithmetic.",
@@ -728,9 +992,27 @@ const I18N = {
     pipe7: "Speck-encrypt every fragment and bind them together with integrity checks.",
     pipe8: "Emit the bootstrap shell — verification first, keys released last — then minify and validate the output.",
     about_tiers: "Security tiers",
-    tlite: "lite ⚡ — AST-level obfuscation only: renaming, control flow, constant protection. No VM, no encryption. Fastest output, minimal overhead — for quick iteration.",
-    tstd: "standard 🛡 — VM + Speck encryption + LZ77 + anti-dump. The production default for most scripts.",
-    tmax: "max 🔥 — everything: multistage fragmentation, integrity checks, anti-debug, identity gate. For high-value scripts.",
+    tlite_t: "lite ⚡", tlite_d: "AST-level obfuscation only. Fastest output, minimal overhead — for quick iteration.",
+    tb1_1: "identifier renaming (themed pools)", tb1_2: "integer noise + loop unrolling", tb1_3: "control-flow flattening",
+    tstd_t: "standard 🛡", tstd_d: "The production default for most scripts.",
+    tb2_1: "everything in lite", tb2_2: "custom VM + randomized instruction encoding", tb2_3: "Speck-CTR per-string encryption + LZ77", tb2_4: "anti-dump runtime",
+    tmax_t: "max 🔥", tmax_d: "Everything, for high-value scripts.",
+    tb3_1: "everything in standard", tb3_2: "multistage fragmentation + integrity binding", tb3_3: "anti-debug + environment probing", tb3_4: "identity gate (type-lock proof)",
+    comp_t: "CSA vs the typical obfuscator",
+    th_dim: "Dimension", th_typ: "Typical obfuscator", th_csa: "CSA",
+    c1d: "Execution", c1b: "native Luau runs the logic — one dump away", c1g: "custom VM with per-build randomized encoding",
+    c2d: "String protection", c2b: "one XOR constant for everything", c2g: "Speck-CTR, independent 128-bit key per string",
+    c3d: "Control flow", c3b: "light flattening, anchors survive", c3g: "flattening + unrolling + MBA before compilation",
+    c4d: "Runtime armor", c4b: "none — dump and debug freely", c4g: "anti-dump, anti-debug, memory erasure, identity gate",
+    c5d: "Per-build randomness", c5b: "same output shape every time — fingerprintable", c5g: "VM, keys, fragments, names all re-derived per seed",
+    c6d: "Plaintext leakage", c6b: "loadstring, API names, strings visible", c6g: "zero — measured by grep",
+    faq_t: "Questions, answered honestly",
+    q1: "Will the obfuscated script run slower?", a1: "Depends on the tier. lite adds almost no overhead — it is source-level rewriting. standard and max run your logic inside the VM interpreter, so CPU-bound hot loops pay a constant factor. That is the price of not running as Luau: performance is the only thing you trade for protection. For typical game scripts — logic, UI handlers, economy checks — the difference is invisible; if you are obfuscating a physics kernel, measure it first and pick the tier accordingly.",
+    q2: "The obfuscated script errors — how do I debug it?", a2: "Keep the original source; that is your debugging copy. Runtime errors still surface normally, but stack traces now point into obfuscated code with themed names. Our workflow: reproduce the error on the original, fix it, re-obfuscate. The obfuscator never changes what your code does — only what it looks like.",
+    q3: "Does obfuscating the same script twice give the same output?", a3: "No — and that is deliberate. With a random seed, every build re-derives the VM instruction encoding, the key schedule, the fragment order and the name pools. Two builds of the same script share nothing, so a break against one build teaches nothing about the next.",
+    q4: "What is a fixed seed for, then?", a4: "Reproducibility. A fixed seed rebuilds the exact same output — useful for testing, CI comparisons and support. The tradeoff: reusing one seed across many scripts gives them a common fingerprint, which is exactly what random builds avoid. Rule of thumb: random seed in production, fixed seed in the test pipeline.",
+    q5: "What exactly changes between the tiers?", a5: "lite is source-level only — renaming, noise, flattening. standard adds the VM, the Speck encryption and LZ77 plus the anti-dump runtime: that is where real protection starts. max adds multistage fragmentation with integrity binding, anti-debug, environment probing and the identity gate. Think of it as: lite for iteration, standard for production, max for high-value logic.",
+    q6: "Where does obfuscation actually run?", a6: "In your browser, locally. The engine is compiled to WebAssembly and runs entirely on your machine — your script never leaves it. The same engine ships as a CLI binary for build pipelines, with the same tiers, seeds and themes.",
     about_honest: "The honest truth about obfuscation",
     honest_p: "No obfuscator makes code mathematically impossible to reverse — a determined analyst with unlimited time can eventually recover anything that runs. What obfuscation actually buys is cost asymmetry: it makes recovering your logic cost more than writing it, more than licensing it, more than ignoring it. CSA's entire design optimizes that asymmetry — every layer exists to raise the price, and every build is unique so the price can never be amortized.",
     hon1: "No obfuscator makes code mathematically impossible to reverse — CSA raises the cost of reversing until it is not worth paying.",
@@ -741,6 +1023,7 @@ const I18N = {
     m1: "Same input, same tier settings, one run per obfuscator.",
     m2: "Leakage counted by grep over the raw output — no manual filtering.",
     m3: "Layer depth verified by stripping layers one at a time and checking what survives.",
+    close_p: "That is the whole story: destroy the source, hide the execution, encrypt everything, bind it with integrity, fight back at runtime, and make every build unique so the cost can never be amortized. Try it above — paste a script, pick a tier, and see what comes out. If it holds up under your own grep, it holds up.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
     note2: "Download the CLI →",
     total_obf: "Total obfuscations", total_dl: "Downloads",
@@ -761,12 +1044,15 @@ const I18N = {
     tier_lite: "lite", tier_lite_sub: "快速", tier_standard: "standard", tier_standard_sub: "均衡", tier_max: "max", tier_max_sub: "最强",
     theme_ak: "明日方舟", theme_zzz: "绝区零", theme_gi: "原神", theme_sr: "星穹铁道", theme_ww: "鸣潮", theme_ef: "终末地", theme_rnd: "随机",
     st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "泄漏",
-            about_title: "为什么 CSA 划出斩杀线",
+                about_title: "为什么 CSA 划出斩杀线",
     about_p1: "大多数 Luau 混淆器止步于重命名变量和 XOR 字符串——源码的骨架还在，逻辑也就还在。CSA 走得更远：它把你的脚本编译进一个自包含的虚拟机，用标准密码算法给每个字符串配一把独立密钥加密，再整体包进层层解密链——逆向者必须把每一层完整解开，才看得到你的一行逻辑。",
     about_p2: "这条链两头都在工作。在 VM 出现之前，CSA 已经把源码拆散——标识符重命名、整数噪声、循环展开、控制流扁平化、MBA 算术。编译之后，它压缩、分片、加密载荷，交给一个引导壳：先自验完整性，盯住 dump 和调试器，最后才释放密钥。每次构建都不同：种子、VM 布局、密钥表、名字池、分片顺序——没有指纹可循，没有东西可复用。",
     about_problem: "其他混淆器的问题",
     p3: "主流的 Luau 混淆器只有两种套路。第一种是改名器：变量打乱、字符串用一个硬编码常量做 XOR、控制流轻轻碰一下——但原始结构、调用图和每个字符串的明文形态，全都只隔着一层 XOR。第二种是上一代字节码捣碎器：打乱 Lua 5.1 操作码，赌没人愿意较真。两种套路犯同一个错——它们护的是表面，不是逻辑。",
     p4: "廉价防护的代价是具体的。脚本被 dump 不只是代码被盗——你的反作弊检测逻辑被逐行阅读，游戏经济系统的价格表被抄进对手的游戏，服务端握手被重放，你发布的每个安全补丁当天就被逆向。只能拖住攻击者一个下午的混淆，并不比能扛几个月的那种便宜——它是最贵的，因为它什么都买不到。",
+    m1_t: "改名器", m1_d: "打乱标识符、全脚本共用一个硬编码 XOR 常量、控制流轻轻碰一下。原始结构和每个字符串的明文形态，只隔着一层 XOR。",
+    m2_t: "字节码捣碎器", m2_d: "打乱 Lua 5.1 操作码，赌没人较真。护的是表面，不是逻辑——而表面离攻破只有一个工具的距离。",
+    fig1_cap: "主流混淆器逃不出的两种套路。",
     about_what: "CSA 做了什么",
     f1_t: "虚拟化字节码", f1_d: "你的脚本编译成自定义 VM 字节码，指令编码每次构建随机——没有原生 Luau 操作码，没有 loadstring，静态分析无从下手。",
     f2_t: "标准密码 + 每串独立密钥", f2_d: "每个字符串用 Speck-CTR 加密，独立 128 位密钥，全部由当次构建的种子派生。没有共享常量，不是自制 XOR。",
@@ -785,8 +1071,19 @@ const I18N = {
     l4_t: "解密链", l4_d: "程序经 LZ77 压缩，切成多阶段分片，每片加密并与下一片用完整性校验绑定。引导壳按序解开链条：先验证每一段，才把钥匙交给下一段。破掉一层，其余各层依旧把守；跳过一段，后面所有密钥都是垃圾。",
     l5_t: "引导壳与身份门", l5_d: "引导壳是输出里唯一会在明面上执行的部分，而它被设计成什么都不给：先自验完整性，最后才放行密钥。链条里埋着一道类型锁校验——必须按生成时的原样通过。stub 掉、跳过或调换顺序，密钥静默污染：攻击者得到的不是一条可以打补丁跳过的报错，而是一个只会吐出乱码的程序。",
     l6_t: "运行时护甲", l6_d: "受保护脚本运行期间持续监视自身环境：拦截 string.dump 防止活字节码被 dump；对 hook 特征做指纹识别，发现调试器式插桩；敏感值用完即从内存擦除；探测环境中的篡改痕迹。攻击者想要逻辑，就得在护甲反击的同时攻破它。",
+    code_cap: "左：你写的脚本。右：主题命名、密文字符串，没有明文锚点。",
+    vm1: "CSA 字节码（随机编码）", vm2: "VM 解释器（本构建现场生成）", vm3: "你的逻辑被执行", vm4: "loadstring · string.dump · 原生操作码——这里一样都没有",
+    vm_cap: "唯一在跑的，是 CSA 自己的解释器。",
+    ks1: "种子", ks_cap: "没有全局常量，没有共享 XOR 密钥——每串一把独立密钥。",
+    ch1: "唯一可见的部分——先校验，最后放钥匙", ch2: "每段与下一段绑定——被改即发现", ch3: "每片独立 128 位密钥", ch4: "破一片只得一片", ch5: "解开链条的第一道缓冲", ch6: "随机指令编码——无原生操作码", ch7: "你的逻辑只住在这里",
+    chain_cap: "攻击者必须按顺序解开的完整栈。",
+    bt1: "自验完整性", bt2: "逐段解密", bt3: "释放密钥", bt4: "启动 VM", bt5: "被篡改 → 密钥静默污染",
+    boot_cap: "先校验，最后放钥匙。",
+    armor1: "拦截 string.dump——活字节码无法被 dump", armor2: "hook 特征指纹——插桩会被发现", armor3: "敏感值用完即擦除", armor4: "环境探测篡改痕迹",
+    armor_cap: "产物一边运行一边反击。",
     about_poly: "每构建多态",
     poly_p: "指纹化是大多数防护被规模化攻破的方式：攻击者破掉一个样本，写个工具，同一混淆器出来的所有脚本就全倒了。CSA 的构造让这个工具永远写不出来。随机种子下，每次构建独立派生 VM 指令编码、密钥表、分片顺序、名字池和引导壳形态。同一脚本的两次混淆之间没有任何共同点——一次构建被破，对下一次构建毫无教学价值。",
+    poly_cap: "同一脚本，两次构建——没有任何共同点。",
     about_pipe: "防护管线",
     pipe1: "解析 Luau 源码，剥离宏与注释。",
     pipe2: "AST 级防御：重命名标识符、注入整数噪声、展开循环、扁平化控制流、保护常量、套 MBA 算术。",
@@ -797,9 +1094,27 @@ const I18N = {
     pipe7: "每片用 Speck 加密，并以完整性校验互相绑定。",
     pipe8: "输出引导壳：先校验，最后才放行密钥——然后压缩混淆并验证产物。",
     about_tiers: "三档强度",
-    tlite: "lite ⚡ — 仅 AST 级混淆：重命名、控制流、常量保护。无 VM、无加密。最快、开销最小——适合快速迭代。",
-    tstd: "standard 🛡 — VM + Speck 加密 + LZ77 + 反 dump。多数生产脚本的默认选择。",
-    tmax: "max 🔥 — 全套：多阶段分片、完整性校验、反调试、身份门。给高价值脚本。",
+    tlite_t: "lite ⚡", tlite_d: "仅 AST 级混淆。最快、开销最小——适合快速迭代。",
+    tb1_1: "标识符重命名（主题词库）", tb1_2: "整数噪声 + 循环展开", tb1_3: "控制流扁平化",
+    tstd_t: "standard 🛡", tstd_d: "多数生产脚本的默认选择。",
+    tb2_1: "包含 lite 全部", tb2_2: "自定义 VM + 随机指令编码", tb2_3: "Speck-CTR 每串加密 + LZ77", tb2_4: "反 dump 运行时",
+    tmax_t: "max 🔥", tmax_d: "全套，给高价值脚本。",
+    tb3_1: "包含 standard 全部", tb3_2: "多阶段分片 + 完整性绑定", tb3_3: "反调试 + 环境探测", tb3_4: "身份门（类型锁校验）",
+    comp_t: "CSA 对比典型混淆器",
+    th_dim: "维度", th_typ: "典型混淆器", th_csa: "CSA",
+    c1d: "执行方式", c1b: "原生 Luau 跑逻辑——dump 一步之遥", c1g: "自定义 VM + 每构建随机指令编码",
+    c2d: "字符串保护", c2b: "全脚本共用一个 XOR 常量", c2g: "Speck-CTR · 每串独立 128 位密钥",
+    c3d: "控制流", c3b: "轻度扁平化 · 锚点全在", c3g: "编译前：扁平化 + 展开 + MBA",
+    c4d: "运行时护甲", c4b: "没有——随便 dump 随便调试", c4g: "反 dump · 反调试 · 内存擦除 · 身份门",
+    c5d: "每构建随机", c5b: "每次输出形状相同——可被指纹", c5g: "VM · 密钥 · 分片 · 命名全部按种子重派生",
+    c6d: "明文泄漏", c6b: "loadstring · API 名 · 字符串原样可见", c6g: "零——按 grep 实测",
+    faq_t: "常见问题——诚实作答",
+    q1: "混淆后的脚本会变慢吗？", a1: "看档位。lite 几乎零开销——它只是源码级改写。standard 和 max 会把逻辑跑进 VM 解释器，CPU 密集的热循环会付出一个常数倍代价。这是「不再以 Luau 运行」的代价：你用性能换防护。普通游戏脚本——逻辑、UI 处理、经济校验——差别肉眼不可见；要混淆物理内核的话，先实测，再选档。",
+    q2: "混淆后的脚本报错了怎么调试？", a2: "保留原始源码，那是你的调试副本。运行时错误照常抛出，只是堆栈会指向主题命名后的混淆代码。工作流：在原版上复现错误、修好、重新混淆。混淆器从不改变代码的行为——只改变它的样子。",
+    q3: "同一份脚本混淆两次，结果一样吗？", a3: "不一样——这是故意的。随机种子下，每次构建重新派生 VM 指令编码、密钥表、分片顺序和名字池。同一脚本的两次构建没有任何共同点，破一次对下一次毫无教学价值。",
+    q4: "那固定种子有什么用？", a4: "可复现性。固定种子能重建一模一样的输出——适合测试、CI 对比和排障。代价：多个脚本复用同一个种子会留下共同指纹，而随机构建恰恰是为了避免指纹。经验法则：生产用随机种子，测试管线用固定种子。",
+    q5: "三档之间到底差了什么？", a5: "lite 只有源码级——重命名、噪声、扁平化。standard 加上 VM、Speck 加密、LZ77 和反 dump 运行时——真正的防护从这里开始。max 再加上多阶段分片与完整性绑定、反调试、环境探测和身份门。记法：lite 用来迭代，standard 用于生产，max 给高价值逻辑。",
+    q6: "混淆是在哪里执行的？", a6: "在你的浏览器里，本地执行。引擎编译成 WebAssembly，完全在你自己的机器上运行——脚本不会离开你的设备。同一引擎也发布为 CLI 二进制，供构建管线使用，档位、种子、主题完全一致。",
     about_honest: "关于混淆的实话",
     honest_p: "没有混淆器能让代码在数学上不可逆——无限时间的死磕分析师最终什么都能还原。混淆真正买的是成本不对称：让恢复你的逻辑比重新写一遍更贵、比买授权更贵、比干脆放弃更贵。CSA 的全部设计都在优化这个不对称——每一层都在抬价，而每次构建都独一无二，让这个价格永远无法被摊薄。",
     hon1: "没有混淆器能让代码在数学上不可逆——CSA 把逆向成本抬高到不值当。",
@@ -810,6 +1125,7 @@ const I18N = {
     m1: "同一输入、同一档设置，每个混淆器各跑一次。",
     m2: "泄漏用 grep 直接数输出原文，不人工过滤。",
     m3: "分层深度逐层剥离验证：拆掉一层，看还剩什么。",
+    close_p: "这就是全部的故事：摧毁源码形状、藏起执行、加密一切、完整性绑定、运行时反击，并让每次构建独一无二——让逆向成本永远无法摊薄。在上面直接试：粘一段脚本，选一档强度，看输出长什么样。如果它扛得过你自己的 grep，它就扛得住别人。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
     note2: "下载 CLI →",
     total_obf: "总混淆次数", total_dl: "下载次数",
