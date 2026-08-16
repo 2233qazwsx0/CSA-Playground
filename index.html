@@ -203,8 +203,7 @@ function fmtBytes(n){
   return (n/1048576).toFixed(2) + ' MB';
 }
 function updateCounts(){
-  const lines = v => { const n = v.split('
-').length; return n + ' ' + t('lines') + ' · ' + v.length + ' ' + t('chars'); };
+  const lines = v => { const n = v.split('\n').length; return n + ' ' + t('lines') + ' · ' + v.length + ' ' + t('chars'); };
   $('#in-count').textContent = lines($('#in').value);
   $('#out-count').textContent = lines($('#out').value);
 }
