@@ -157,8 +157,11 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 </div>
 
 <div class="note">
+  <div id="total-stats" style="margin-bottom:10px; font-size:14px; font-weight:700; color:#1d4ed8;">
+    <span data-i18n="total_obf">Total obfuscations</span>: <b id="total-count">—</b>
+  </div>
   <span data-i18n="note1">No server — the obfuscator compiles to WebAssembly and runs locally in your browser.</span>
-  <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2" onclick="try{ fetch('/api/download', {method:'POST'}); }catch(e){}">Download the CLI →</a>
+  <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2" onclick="try{ fetch('https://api.csa.cua123.ccwu.cc/download', {method:'POST'}); }catch(e){}">Download the CLI →</a>
 </div>
 
 <script src="./wasm_exec.js"></script>
@@ -185,7 +188,8 @@ const I18N = {
     hon2: "The strength comes from the VM and the cipher, not from a marketing page.",
     hon3: "Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
-    note2: "Download the CLI →"
+    note2: "Download the CLI →",
+    total_obf: "Total obfuscations"
   },
   zh: {
     hero_title: "Luau 混淆器", hero_sub: "斩杀线。用实测说话，不靠营销。", hero_kill: "⚔ 任何价格上比我弱的，全部出局",
@@ -208,7 +212,8 @@ const I18N = {
     hon2: "强度来自 VM 和密码学，不是营销页面。",
     hon3: "上面每个数字都可复现——同一输入跑的对比，明文泄漏用 grep 数出来。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
-    note2: "下载 CLI →"
+    note2: "下载 CLI →",
+    total_obf: "总混淆次数"
   }
 };
 let lang = 'en';
@@ -269,8 +274,8 @@ document.getElementById("btn").addEventListener("click", () => {
       document.getElementById("stats").style.display = 'flex';
       document.getElementById("download").disabled = false;
       status.innerHTML = '<span style="color:#059669;font-weight:700;">' + (lang === 'zh' ? '✓ 完成' : '✓ Done') + '</span>';
-      // fire-and-forget anonymous stat ping (KV counter)
-      try { fetch('/api/stats', { method: 'POST' }); } catch (e) {}
+      // fire-and-forget anonymous stat ping + refresh total
+      try { fetch('https://api.csa.cua123.ccwu.cc/stats', { method: 'POST' }).then(r=>r.json()).then(d=>{ if(d.obfuscations){ document.getElementById('total-count').textContent = d.obfuscations; } }); } catch (e) {}
     } catch (e) { status.innerHTML = '<span style="color:#e11d48;">' + e + '</span>'; }
   }, 50);
 });
@@ -288,6 +293,8 @@ document.getElementById("download").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
 });
+// load total obfuscation count from KV worker
+try { fetch('https://api.csa.cua123.ccwu.cc/stats').then(r=>r.json()).then(d=>{ if(d.obfuscations){ document.getElementById('total-count').textContent = d.obfuscations; } }); } catch (e) {}
 </script>
 </body>
 </html>
