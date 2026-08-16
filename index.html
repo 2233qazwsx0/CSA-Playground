@@ -24,10 +24,9 @@ body {
 /* ══════════ HERO: self-contained deep blue block ══════════ */
 .hero-zone {
   width: 100%;
-  min-height: 92vh;
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 110px 20px 120px;
+  padding: 96px 20px 56px;
   background: linear-gradient(165deg, #071033 0%, #0a1e5e 30%, #123c9e 62%, #1e56c8 100%);
   overflow: hidden;
   isolation: isolate;
@@ -50,14 +49,26 @@ body {
     radial-gradient(520px 380px at 88% 78%, rgba(56,189,248,0.22), transparent 62%);
 }
 
-.lang-bar { position: absolute; top: 22px; right: 24px; z-index: 5; display: flex; gap: 6px; }
-.lang-bar button {
-  border: 1px solid rgba(255,255,255,0.25); border-radius: 999px;
-  padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer;
-  background: rgba(255,255,255,0.08); color: rgba(219,231,255,0.85);
-  backdrop-filter: blur(8px); transition: all .2s;
+.lang-bar { position: absolute; top: 22px; right: 24px; z-index: 5; }
+.slider-track {
+  position: relative; display: inline-flex; padding: 4px; border-radius: 999px;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
-.lang-bar button.active { background: rgba(255,255,255,0.92); color: #123c9e; border-color: transparent; }
+.slider-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
+  border-radius: 999px; background: rgba(255,255,255,0.92);
+  transform: translateX(0);
+  transition: transform .45s cubic-bezier(.22,1.2,.36,1), width .45s cubic-bezier(.22,1.2,.36,1);
+  will-change: transform, width;
+}
+.slider-track .opt {
+  position: relative; z-index: 2; border: none; background: transparent;
+  padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  color: rgba(219,231,255,0.75); cursor: pointer;
+  transition: color .3s; box-shadow: none; -webkit-tap-highlight-color: transparent;
+}
+.slider-track .opt.active { color: #123c9e; }
 
 .hero-inner { max-width: 1080px; width: 100%; text-align: center; position: relative; z-index: 1; }
 .hero-inner h1 {
@@ -75,7 +86,7 @@ body {
 
 /* ══════════ KILL PANEL: inside hero ══════════ */
 .kill-panel {
-  margin-top: 56px; text-align: left;
+  margin-top: 44px; text-align: left;
   background: rgba(10,20,55,0.45);
   border: 1px solid rgba(148,180,255,0.18);
   border-radius: 24px; padding: 26px 28px;
@@ -97,13 +108,7 @@ body {
 .kill-card .name { font-size: 0.92rem; font-weight: 700; color: #e8efff; }
 .kill-card .layer { font-size: 0.66rem; color: rgba(148,180,255,0.65); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.8px; }
 
-/* scroll hint */
-.scroll-hint {
-  margin-top: 40px; text-align: center; color: rgba(148,180,255,0.6);
-  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-  animation: bob 2.4s ease-in-out infinite;
-}
-@keyframes bob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(6px);} }
+/* scroll hint removed — hero is compact now */
 
 /* ══════════ TRANSITION BAND ══════════ */
 .transition-band {
@@ -157,9 +162,25 @@ button.primary {
 }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.tier-switch { display: inline-flex; background: #eaf1fd; border-radius: 999px; padding: 4px; border: 1px solid #dbe6f8; }
-.tier-switch button { border: none; background: transparent; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #5a6b8c; box-shadow: none; }
-.tier-switch button.active { background: #2563eb; color: #fff; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+.tier-switch {
+  position: relative; display: inline-flex; padding: 4px; border-radius: 999px;
+  background: #eaf1fd; border: 1px solid #dbe6f8;
+}
+.tier-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
+  border-radius: 999px; background: linear-gradient(135deg, #14357e, #2563eb);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+  transform: translateX(0);
+  transition: transform .45s cubic-bezier(.22,1.2,.36,1), width .45s cubic-bezier(.22,1.2,.36,1);
+  will-change: transform, width;
+}
+.tier-switch button {
+  position: relative; z-index: 2; border: none; background: transparent;
+  padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  color: #5a6b8c; box-shadow: none; -webkit-tap-highlight-color: transparent;
+  transition: color .3s;
+}
+.tier-switch button.active { color: #fff; }
 .tier-switch button:hover { transform: none; box-shadow: none; }
 
 .stats {
@@ -212,8 +233,11 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 <!-- ═══════════ HERO (deep blue, self-contained) ═══════════ -->
 <section class="hero-zone">
   <div class="lang-bar">
-    <button class="active" id="lang-en" onclick="setLang('en')">EN</button>
-    <button id="lang-zh" onclick="setLang('zh')">中文</button>
+    <div class="slider-track" id="lang-track">
+      <div class="slider-thumb" id="lang-thumb"></div>
+      <button class="opt active" data-lang="en">EN</button>
+      <button class="opt" data-lang="zh">中文</button>
+    </div>
   </div>
 
   <div class="hero-inner">
@@ -238,8 +262,6 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
         <div class="kill-card"><div class="name">Synapse Xen</div><div class="layer" data-i18n="cut_xen">locked behind paid exploit</div></div>
       </div>
     </div>
-
-    <div class="scroll-hint">↓</div>
   </div>
 </section>
 
@@ -270,6 +292,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   <div class="controls">
     <button class="primary" id="btn" data-i18n="btn_obf">Obfuscate</button>
     <div class="tier-switch" id="tier-switch">
+      <div class="tier-thumb" id="tier-thumb"></div>
       <button data-tier="lite">lite ⚡</button>
       <button data-tier="standard">standard 🛡</button>
       <button class="active" data-tier="max">max 🔥</button>
@@ -368,16 +391,39 @@ const I18N = {
 };
 let lang = 'en';
 let curTier = 'max';
+
+/* ── sliding thumb mover (transform-based, GPU smooth) ── */
+function moveThumb(trackId, thumbId, attr, val) {
+  const track = document.getElementById(trackId);
+  const thumb = document.getElementById(thumbId);
+  const opts = track.querySelectorAll('button');
+  let target = null;
+  opts.forEach(o => { if (o.getAttribute(attr) === val) target = o; });
+  if (!target) return;
+  thumb.style.width = target.offsetWidth + 'px';
+  thumb.style.transform = 'translateX(' + target.offsetLeft + 'px)';
+}
+function moveLangThumb() { moveThumb('lang-track', 'lang-thumb', 'data-lang', lang); }
+function moveTierThumb() { moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier); }
+
 function setLang(l) {
   lang = l;
   document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[l][k]) el.textContent = I18N[l][k]; });
-  document.getElementById('lang-en').classList.toggle('active', l === 'en');
-  document.getElementById('lang-zh').classList.toggle('active', l === 'zh');
+  document.querySelectorAll('#lang-track .opt').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === l));
+  moveLangThumb();
 }
+document.querySelectorAll('#lang-track .opt').forEach(b => b.addEventListener('click', () => setLang(b.getAttribute('data-lang'))));
+
 document.querySelectorAll('#tier-switch button').forEach(b => b.addEventListener('click', () => {
   curTier = b.getAttribute('data-tier');
   document.querySelectorAll('#tier-switch button').forEach(x => x.classList.toggle('active', x === b));
+  moveTierThumb();
 }));
+
+/* initial position after layout + on resize */
+requestAnimationFrame(() => { moveLangThumb(); moveTierThumb(); });
+window.addEventListener('resize', () => { moveLangThumb(); moveTierThumb(); });
+window.addEventListener('load', () => { moveLangThumb(); moveTierThumb(); });
 
 const go = new Go();
 let ready = false;
