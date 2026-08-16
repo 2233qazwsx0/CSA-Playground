@@ -79,7 +79,10 @@ header{display:flex;align-items:center;justify-content:space-between;gap:14px;pa
 #out:focus{outline:none}
 
 /* ── control deck ── */
-.deck{margin-top:20px;border-radius:14px;padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.deck{margin-top:20px;border-radius:14px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp-label{font-family:var(--mono);font-size:9.5px;letter-spacing:2.5px;color:var(--faint)}
+.grp-label i{font-style:normal;color:var(--accent)}
 .tier{position:relative;display:flex;border-radius:11px;padding:4px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
 .tier .thumb{position:absolute;top:4px;bottom:4px;left:4px;z-index:1;border-radius:8px;
   background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
@@ -88,10 +91,15 @@ header{display:flex;align-items:center;justify-content:space-between;gap:14px;pa
   transition:width .28s cubic-bezier(.4,0,.2,1), transform .28s cubic-bezier(.4,0,.2,1)}
 .tier button{position:relative;z-index:2;border:0;background:transparent;padding:9px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--faint);transition:color .2s}
 .tier button.active{color:var(--accent);text-shadow:0 0 12px var(--accent-glow)}
-.select-wrap{position:relative;border-radius:11px;display:flex;align-items:center;padding:0 14px}
-.select-wrap::after{content:"▾";position:absolute;right:12px;font-size:10px;color:var(--faint);pointer-events:none}
-.select-wrap select{appearance:none;-webkit-appearance:none;border:0;background:transparent;outline:none;color:var(--muted);font-family:var(--mono);font-size:11.5px;letter-spacing:1.5px;padding:11px 24px 11px 2px;cursor:pointer}
-.actions{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap}
+.themes{display:flex;flex-wrap:wrap;gap:8px;max-width:560px}
+.tbtn{border-radius:999px;padding:8px 15px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--faint);white-space:nowrap;
+  transition:color .2s,border-color .2s,box-shadow .2s}
+.tbtn i{font-style:normal;margin-right:5px;color:var(--faint);transition:color .2s}
+.tbtn:hover{color:var(--text);border-color:var(--line-strong)}
+.tbtn.active{color:var(--accent);border-color:rgba(45,212,191,.55);text-shadow:0 0 12px var(--accent-glow);
+  box-shadow:0 0 18px rgba(45,212,191,.20), inset 0 1px 0 rgba(255,255,255,.24)}
+.tbtn.active i{color:var(--accent)}
+.actions{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .btn{border-radius:11px;padding:11px 24px;font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--muted);transition:color .2s,border-color .2s,transform .12s,box-shadow .2s}
 .btn:hover{color:var(--text);border-color:var(--line-strong)}
 .btn:active{transform:translateY(1px) scale(.985)}
@@ -148,24 +156,28 @@ footer b{color:var(--muted);font-weight:600}
   </div>
 
   <div class="deck glass">
-    <div class="tier" id="tier" role="group" aria-label="tier">
-      <span class="thumb" id="tier-thumb"></span>
-      <button type="button" data-tier="lite" data-i18n="lite">LITE</button>
-      <button type="button" data-tier="standard" data-i18n="standard">STANDARD</button>
-      <button type="button" data-tier="max" class="active" data-i18n="max">MAX</button>
+    <div class="grp">
+      <span class="grp-label">TIER <i>//</i> <span data-i18n="tier_l">等级</span></span>
+      <div class="tier" id="tier" role="group" aria-label="tier">
+        <span class="thumb" id="tier-thumb"></span>
+        <button type="button" data-tier="lite" data-i18n="lite">LITE</button>
+        <button type="button" data-tier="standard" data-i18n="standard">STANDARD</button>
+        <button type="button" data-tier="max" class="active" data-i18n="max">MAX</button>
+      </div>
     </div>
-    <span class="select-wrap glass">
-      <select id="theme" aria-label="theme" title="变量名主题">
-        <option value="random" selected data-i18n="theme_random">随机主题</option>
-        <option value="arknights" data-i18n="theme_ak">明日方舟</option>
-        <option value="zenless" data-i18n="theme_zz">绝区零</option>
-        <option value="genshin" data-i18n="theme_gi">原神</option>
-        <option value="starrail" data-i18n="theme_sr">星穹铁道</option>
-        <option value="wuthering" data-i18n="theme_ww">鸣潮</option>
-        <option value="endfield" data-i18n="theme_ef">终末地</option>
-        <option value="confusion" data-i18n="theme_cf">混淆字符</option>
-      </select>
-    </span>
+    <div class="grp">
+      <span class="grp-label">THEME <i>//</i> <span data-i18n="theme_l">变量名主题</span></span>
+      <div class="themes" id="themes" role="group" aria-label="theme">
+        <button type="button" class="tbtn glass active" data-theme="random"><i>◈</i><span data-i18n="theme_random">随机</span></button>
+        <button type="button" class="tbtn glass" data-theme="arknights"><i>✦</i><span data-i18n="theme_ak">明日方舟</span></button>
+        <button type="button" class="tbtn glass" data-theme="zenless"><i>◆</i><span data-i18n="theme_zz">绝区零</span></button>
+        <button type="button" class="tbtn glass" data-theme="genshin"><i>✧</i><span data-i18n="theme_gi">原神</span></button>
+        <button type="button" class="tbtn glass" data-theme="starrail"><i>☄</i><span data-i18n="theme_sr">星穹铁道</span></button>
+        <button type="button" class="tbtn glass" data-theme="wuthering"><i>≋</i><span data-i18n="theme_ww">鸣潮</span></button>
+        <button type="button" class="tbtn glass" data-theme="endfield"><i>⌬</i><span data-i18n="theme_ef">终末地</span></button>
+        <button type="button" class="tbtn glass" data-theme="confusion"><i>␣</i><span data-i18n="theme_cf">混淆</span></button>
+      </div>
+    </div>
     <div class="actions">
       <button class="btn glass" id="upload" type="button" data-i18n="upload">⬆ OPEN</button>
       <input type="file" id="file" accept=".lua,.luau,.txt" hidden>
@@ -204,9 +216,10 @@ const STR = {
     tagline:'LUAU OBFUSCATOR · 本地 WASM 引擎', loading:'引擎加载中…', ready:'就绪', obfuscating:'混淆中…', done:'完成', error:'出错',
     input:'源码', output:'产物', input_ph:'-- 在此粘贴 Luau 源码…', output_ph:'—',
     lite:'LITE', standard:'STANDARD', max:'MAX',
-    theme_random:'随机主题', theme_ak:'明日方舟', theme_zz:'绝区零', theme_gi:'原神', theme_sr:'星穹铁道', theme_ww:'鸣潮', theme_ef:'终末地', theme_cf:'混淆字符',
+    tier_l:'等级', theme_l:'变量名主题',
+    theme_random:'随机', theme_ak:'明日方舟', theme_zz:'绝区零', theme_gi:'原神', theme_sr:'星穹铁道', theme_ww:'鸣潮', theme_ef:'终末地', theme_cf:'混淆',
     upload:'⬆ 打开', obfuscate:'⚡ 混淆', copy:'⧉ 复制', copied:'已复制 ✓', download:'⬇ 下载',
-    tier_l:'等级', size:'大小', ratio:'膨胀率', time:'耗时',
+    tier_lb:'等级', size:'大小', ratio:'膨胀率', time:'耗时',
     local:'无服务器 · WASM 在浏览器本地运行',
     total_obf:'总混淆', total_dl:'下载',
     no_input:'请先输入代码', wait:'引擎尚未就绪', load_failed:'WASM 加载失败:',
@@ -216,9 +229,10 @@ const STR = {
     tagline:'LUAU OBFUSCATOR · LOCAL WASM ENGINE', loading:'LOADING ENGINE…', ready:'READY', obfuscating:'OBFUSCATING…', done:'DONE', error:'ERROR',
     input:'SOURCE', output:'RESULT', input_ph:'-- paste Luau source here…', output_ph:'—',
     lite:'LITE', standard:'STANDARD', max:'MAX',
+    tier_l:'TIER', theme_l:'NAME THEME',
     theme_random:'Random', theme_ak:'Arknights', theme_zz:'Zenless', theme_gi:'Genshin', theme_sr:'Star Rail', theme_ww:'Wuthering', theme_ef:'Endfield', theme_cf:'Confusion',
     upload:'OPEN', obfuscate:'OBFUSCATE', copy:'COPY', copied:'COPIED ✓', download:'.LUA',
-    tier_l:'TIER', size:'SIZE', ratio:'RATIO', time:'TIME',
+    tier_lb:'TIER', size:'SIZE', ratio:'RATIO', time:'TIME',
     local:'NO SERVER · WASM RUNS IN YOUR BROWSER',
     total_obf:'OBS', total_dl:'DLS',
     no_input:'PLEASE ENTER SOME CODE', wait:'ENGINE NOT READY', load_failed:'WASM LOAD FAILED:',
@@ -334,7 +348,11 @@ $('#tier').addEventListener('click', e => {
   document.querySelectorAll('#tier button').forEach(x => x.classList.toggle('active', x === b));
   moveThumb();
 });
-$('#theme').addEventListener('change', e => { curTheme = e.target.value; });
+$('#themes').addEventListener('click', e => {
+  const b = e.target.closest('.tbtn'); if (!b) return;
+  curTheme = b.dataset.theme;
+  document.querySelectorAll('#themes .tbtn').forEach(x => x.classList.toggle('active', x === b));
+});
 
 /* ── file open ── */
 $('#file').addEventListener('change', e => {
