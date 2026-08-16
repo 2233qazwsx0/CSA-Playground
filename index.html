@@ -1005,7 +1005,7 @@ const I18N = {
     c3d: "Control flow", c3b: "light flattening, anchors survive", c3g: "flattening + unrolling + MBA before compilation",
     c4d: "Runtime armor", c4b: "none — dump and debug freely", c4g: "anti-dump, anti-debug, memory erasure, identity gate",
     c5d: "Per-build randomness", c5b: "same output shape every time — fingerprintable", c5g: "VM, keys, fragments, names all re-derived per seed",
-    c6d: "Plaintext leakage", c6b: "loadstring, API names, strings visible", c6g: "zero — measured by grep",
+    c6d: "Plaintext leakage", c6b: "loadstring, API names, strings visible", c6g: "zero — input string literals checked against output",
     faq_t: "Questions, answered honestly",
     q1: "Will the obfuscated script run slower?", a1: "Depends on the tier. lite adds almost no overhead — it is source-level rewriting. standard and max run your logic inside the VM interpreter, so CPU-bound hot loops pay a constant factor. That is the price of not running as Luau: performance is the only thing you trade for protection. For typical game scripts — logic, UI handlers, economy checks — the difference is invisible; if you are obfuscating a physics kernel, measure it first and pick the tier accordingly.",
     q2: "The obfuscated script errors — how do I debug it?", a2: "Keep the original source; that is your debugging copy. Runtime errors still surface normally, but stack traces now point into obfuscated code with themed names. Our workflow: reproduce the error on the original, fix it, re-obfuscate. The obfuscator never changes what your code does — only what it looks like.",
@@ -1017,12 +1017,12 @@ const I18N = {
     honest_p: "No obfuscator makes code mathematically impossible to reverse — a determined analyst with unlimited time can eventually recover anything that runs. What obfuscation actually buys is cost asymmetry: it makes recovering your logic cost more than writing it, more than licensing it, more than ignoring it. CSA's entire design optimizes that asymmetry — every layer exists to raise the price, and every build is unique so the price can never be amortized.",
     hon1: "No obfuscator makes code mathematically impossible to reverse — CSA raises the cost of reversing until it is not worth paying.",
     hon2: "The strength comes from the VM and the cipher, not from the marketing page — every claim maps to a stage in the pipeline above.",
-    hon3: "Every comparison on this page is reproducible — same input, plaintext leaks counted by grep, protection depth measured layer by layer.",
+    hon3: "Every comparison on this page is reproducible — same input, leaks counted mechanically, protection depth measured layer by layer.",
     about_meas: "How the numbers are measured",
-    meas_p: "Every claim on this page is reproducible. Comparisons run on the same input script, with the same tier settings, across every obfuscator listed. Plaintext leakage is counted mechanically — grep for loadstring, API names and string constants in the raw output. The pipeline above is not a marketing metaphor: it is the engine's actual compile order, and each stage maps to a measurable property of the output.",
+    meas_p: "Every claim on this page is reproducible. Comparisons run on the same input script, with the same tier settings, across every obfuscator listed. Plaintext leakage is counted mechanically — every string literal from your source is checked against the raw output, nothing hand-picked. The pipeline above is not a marketing metaphor: it is the engine's actual compile order, and each stage maps to a measurable property of the output.",
     m1: "Same input, same tier settings, one run per obfuscator.",
     m2: "Leakage counted by grep over the raw output — no manual filtering.",
-    m3: "Layer depth verified by stripping layers one at a time and checking what survives.",
+    m3: "Leakage = input string literals found verbatim in the output — checked mechanically, no fixed word list.",
     close_p: "That is the whole story: destroy the source, hide the execution, encrypt everything, bind it with integrity, fight back at runtime, and make every build unique so the cost can never be amortized. Try it above — paste a script, pick a tier, and see what comes out. If it holds up under your own grep, it holds up.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
     note2: "Download the CLI →",
@@ -1107,7 +1107,7 @@ const I18N = {
     c3d: "控制流", c3b: "轻度扁平化 · 锚点全在", c3g: "编译前：扁平化 + 展开 + MBA",
     c4d: "运行时护甲", c4b: "没有——随便 dump 随便调试", c4g: "反 dump · 反调试 · 内存擦除 · 身份门",
     c5d: "每构建随机", c5b: "每次输出形状相同——可被指纹", c5g: "VM · 密钥 · 分片 · 命名全部按种子重派生",
-    c6d: "明文泄漏", c6b: "loadstring · API 名 · 字符串原样可见", c6g: "零——按 grep 实测",
+    c6d: "明文泄漏", c6b: "loadstring · API 名 · 字符串原样可见", c6g: "零——源码字符串逐一比对输出",
     faq_t: "常见问题——诚实作答",
     q1: "混淆后的脚本会变慢吗？", a1: "看档位。lite 几乎零开销——它只是源码级改写。standard 和 max 会把逻辑跑进 VM 解释器，CPU 密集的热循环会付出一个常数倍代价。这是「不再以 Luau 运行」的代价：你用性能换防护。普通游戏脚本——逻辑、UI 处理、经济校验——差别肉眼不可见；要混淆物理内核的话，先实测，再选档。",
     q2: "混淆后的脚本报错了怎么调试？", a2: "保留原始源码，那是你的调试副本。运行时错误照常抛出，只是堆栈会指向主题命名后的混淆代码。工作流：在原版上复现错误、修好、重新混淆。混淆器从不改变代码的行为——只改变它的样子。",
@@ -1119,12 +1119,12 @@ const I18N = {
     honest_p: "没有混淆器能让代码在数学上不可逆——无限时间的死磕分析师最终什么都能还原。混淆真正买的是成本不对称：让恢复你的逻辑比重新写一遍更贵、比买授权更贵、比干脆放弃更贵。CSA 的全部设计都在优化这个不对称——每一层都在抬价，而每次构建都独一无二，让这个价格永远无法被摊薄。",
     hon1: "没有混淆器能让代码在数学上不可逆——CSA 把逆向成本抬高到不值当。",
     hon2: "强度来自 VM 和密码学，不来自营销页——上面每句话都对应管线里的一个真实环节。",
-    hon3: "本页所有对比都可复现——同一输入、明文泄漏按 grep 计数、防护深度逐层测量。",
+    hon3: "本页所有对比都可复现——同一输入、泄漏机器计数、防护深度逐层测量。",
     about_meas: "数字是怎么量出来的",
-    meas_p: "本页每个说法都可复现。对比在同一份输入脚本上、用同一档强度设置、对列出的每个混淆器各跑一次。明文泄漏用机器数：对输出 grep loadstring、API 名和字符串常量。上面的管线不是营销比喻——它就是引擎真实的编译顺序，每一阶段都对应输出里一个可测量的属性。",
+    meas_p: "本页每个说法都可复现。对比在同一份输入脚本上、用同一档强度设置、对列出的每个混淆器各跑一次。明文泄漏用机器数：把源码里的每个字符串字面量与输出逐一比对，不手工挑词。上面的管线不是营销比喻——它就是引擎真实的编译顺序，每一阶段都对应输出里一个可测量的属性。",
     m1: "同一输入、同一档设置，每个混淆器各跑一次。",
     m2: "泄漏用 grep 直接数输出原文，不人工过滤。",
-    m3: "分层深度逐层剥离验证：拆掉一层，看还剩什么。",
+    m3: "泄漏 = 源码字符串字面量原样出现在输出里的数量——机器比对，没有固定词表。",
     close_p: "这就是全部的故事：摧毁源码形状、藏起执行、加密一切、完整性绑定、运行时反击，并让每次构建独一无二——让逆向成本永远无法摊薄。在上面直接试：粘一段脚本，选一档强度，看输出长什么样。如果它扛得过你自己的 grep，它就扛得住别人。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
     note2: "下载 CLI →",
@@ -1246,6 +1246,27 @@ WebAssembly.instantiateStreaming(fetch('./csa.wasm'), go.importObject)
   .catch(e => { setStatus('error', t('load_failed') + ': ' + e); });
 
 /* ═══════════════════════════ OBFUSCATE ═══════════════════════════ */
+
+/* ── leak detection: input string literals that survive in the output ── */
+function extractStrings(src) {
+  const found = [];
+  let re = /"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g, m;
+  while ((m = re.exec(src)) !== null) found.push(m[1] != null ? m[1] : m[2]);
+  re = /\[(=*)\[([\s\S]*?)\]\1\]/g;
+  while ((m = re.exec(src)) !== null) found.push(m[2]);
+  return found;
+}
+function countLeaks(inputSrc, outputSrc) {
+  let n = 0;
+  const seen = new Set();
+  for (const lit of extractStrings(inputSrc)) {
+    if (lit.length < 3 || seen.has(lit)) continue;
+    seen.add(lit);
+    // a leak = your plaintext string still sitting in the output as a string
+    if (outputSrc.indexOf('"' + lit + '"') !== -1 || outputSrc.indexOf("'" + lit + "'") !== -1 || outputSrc.indexOf('[[' + lit + ']]') !== -1) n++;
+  }
+  return n;
+}
 function obfuscate() {
   if (!ready) { setStatus('', t('status_loading')); return; }
   const src = $('#input').value;
@@ -1262,7 +1283,7 @@ function obfuscate() {
       const output = $('#output');
       output.value = out.result;
 
-      const leak = (out.result.match(/loadstring|print|hello|world/g) || []).length;
+      const leak = countLeaks(src, out.result);
       $('#stat-tier').textContent = out.tier;
       $('#stat-size').textContent = out.outputBytes + ' B';
       $('#stat-ratio').textContent = (out.outputBytes / Math.max(1, out.inputBytes)).toFixed(1) + '×';
