@@ -78,7 +78,7 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   opacity: 0.5;
 }
-/* sliding capsule */ .slider-track{position:relative;display:inline-flex;padding:4px;border-radius:999px;background:rgba(255,255,255,0.45);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 24px rgba(31,38,75,0.08)} .slider-track .opt{position:relative;z-index:2;border:none;background:transparent;color:#5b6472;font-weight:700;font-size:13px;padding:8px 18px;border-radius:999px;cursor:pointer;transition:color .25s} .slider-track .opt.active{color:#fff} .slider-thumb{position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;background:linear-gradient(90deg,#2563eb,#3b82f6);box-shadow:0 4px 14px rgba(37,99,235,.4);transition:left .32s cubic-bezier(.34,1.3,.64,1),width .32s cubic-bezier(.34,1.3,.64,1);z-index:1}</style>
+/* sliding capsule */ .slider-track{position:relative;display:inline-flex;padding:4px;border-radius:999px;background:rgba(255,255,255,0.45);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 24px rgba(31,38,75,0.08)} .slider-track .opt{position:relative;z-index:2;border:none;background:transparent;color:#5b6472;font-weight:700;font-size:13px;padding:8px 18px;border-radius:999px;cursor:pointer;transition:color .25s} .slider-track .opt.active{color:#fff} .slider-thumb{position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;background:linear-gradient(90deg,#2563eb,#3b82f6);box-shadow:0 4px 14px rgba(37,99,235,.4);transition:left .32s cubic-bezier(.34,1.3,.64,1),width .32s cubic-bezier(.34,1.3,.64,1);z-index:1}.tiles{display:flex;gap:16px;width:100%;max-width:1080px;margin-bottom:24px;flex-wrap:wrap;z-index:1}.tile{flex:1;min-width:150px;text-align:center;padding:22px 16px;border-radius:22px;background:rgba(255,255,255,0.55);backdrop-filter:blur(24px) saturate(150%);border:1px solid rgba(255,255,255,0.8);box-shadow:0 12px 32px rgba(31,38,75,0.10)}.tile .num{font-size:2.4rem;font-weight:900;color:#1d4ed8;line-height:1}.tile .label{font-size:0.78rem;color:#8a90a3;text-transform:uppercase;letter-spacing:1px;margin-top:8px;font-weight:700}</style>
 </head>
 <body>
 <div class="lang-bar">
@@ -156,10 +156,12 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
   </ul>
 </div>
 
+<div class="tiles">
+  <div class="tile"><div class="num" id="total-count">—</div><div class="label" data-i18n="total_obf">Total obfuscations</div></div>
+  <div class="tile"><div class="num" id="total-downloads">—</div><div class="label" data-i18n="total_dl">Downloads</div></div>
+</div>
+
 <div class="note">
-  <div id="total-stats" style="margin-bottom:10px; font-size:14px; font-weight:700; color:#1d4ed8;">
-    <span data-i18n="total_obf">Total obfuscations</span>: <b id="total-count">—</b>
-  </div>
   <span data-i18n="note1">No server — the obfuscator compiles to WebAssembly and runs locally in your browser.</span>
   <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2" onclick="try{ fetch('https://api.csa.cua123.ccwu.cc/download', {method:'POST'}); }catch(e){}">Download the CLI →</a>
 </div>
@@ -189,7 +191,8 @@ const I18N = {
     hon3: "Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
     note2: "Download the CLI →",
-    total_obf: "Total obfuscations"
+    total_obf: "Total obfuscations",
+    total_dl: "Downloads"
   },
   zh: {
     hero_title: "Luau 混淆器", hero_sub: "斩杀线。用实测说话，不靠营销。", hero_kill: "⚔ 任何价格上比我弱的，全部出局",
@@ -213,7 +216,8 @@ const I18N = {
     hon3: "上面每个数字都可复现——同一输入跑的对比，明文泄漏用 grep 数出来。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
     note2: "下载 CLI →",
-    total_obf: "总混淆次数"
+    total_obf: "总混淆次数",
+    total_dl: "下载次数"
   }
 };
 let lang = 'en';
@@ -293,8 +297,8 @@ document.getElementById("download").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
 });
-// load total obfuscation count from KV worker
-try { fetch('https://api.csa.cua123.ccwu.cc/stats').then(r=>r.json()).then(d=>{ if(d.obfuscations){ document.getElementById('total-count').textContent = d.obfuscations; } }); } catch (e) {}
+// load total counts from KV worker
+try { fetch('https://api.csa.cua123.ccwu.cc/stats').then(r=>r.json()).then(d=>{ if(d.obfuscations !== undefined){ document.getElementById('total-count').textContent = d.obfuscations; } if(d.downloads !== undefined){ document.getElementById('total-downloads').textContent = d.downloads; } }); } catch (e) {}
 </script>
 </body>
 </html>
