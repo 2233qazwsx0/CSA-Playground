@@ -3,319 +3,554 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a1b4d">
+<meta name="theme-color" content="#06080f">
+<meta name="description" content="CSA — Luau Obfuscator. Virtualized bytecode, per-string encryption, layered decryption. The kill line.">
 <title>CSA — Luau Obfuscator</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='.55' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-size='34' font-weight='900' fill='%23fff' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ═══════════════════════════ TOKENS ═══════════════════════════ */
 :root {
-  --ink: #0d1730;
-  --muted: #5a6b8c;
-  --accent: #2563eb;
-  --page: #f6f9ff;
+  --bg: #06080f;
+  --bg-2: #0a0f1c;
+  --surface: rgba(255,255,255,.035);
+  --surface-2: rgba(255,255,255,.06);
+  --surface-3: rgba(255,255,255,.09);
+  --border: rgba(255,255,255,.08);
+  --border-strong: rgba(255,255,255,.14);
+  --text: #e9eef8;
+  --muted: #97a3b8;
+  --faint: #64748b;
+  --accent: #6366f1;
+  --violet: #8b5cf6;
+  --cyan: #22d3ee;
+  --danger: #fb7185;
+  --success: #34d399;
+  --warn: #fbbf24;
+  --grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 52%, #22d3ee 100%);
+  --grad-soft: linear-gradient(135deg, rgba(99,102,241,.16), rgba(139,92,246,.12), rgba(34,211,238,.10));
+  --radius: 16px;
+  --radius-lg: 22px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --shadow: 0 20px 60px rgba(0,0,0,.45);
+  --glow: 0 0 0 1px rgba(99,102,241,.35), 0 10px 40px rgba(99,102,241,.22);
 }
-/* fixed gradient layer (iOS-safe replacement for background-attachment:fixed) */
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: -2;
-  background: linear-gradient(180deg,
-    #071033 0%, #0a1e5e 14%, #0f2f8f 30%, #1a4fc0 45%,
-    #2f6ae8 58%, #7ea8f2 72%, #c4d9f7 84%, #eef4fe 93%, #f8faff 100%);
-}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  background: #f8faff;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
-  color: var(--ink);
-  display: flex; flex-direction: column; align-items: center;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+::selection { background: rgba(99,102,241,.4); color: #fff; }
 
-/* ══════════ HERO: flows on the gradient, no own background ══════════ */
-.hero-zone {
-  width: 100%;
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 110px 20px 64px;
-  overflow: hidden;
-  isolation: isolate;
-/* tech grid — fades with the gradient */
-.hero-zone::before {
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background-image:
-    linear-gradient(rgba(148,180,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148,180,255,0.08) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: linear-gradient(180deg, black 0%, black 55%, transparent 95%);
-  -webkit-mask-image: linear-gradient(180deg, black 0%, black 55%, transparent 95%);
-}
-/* light orbs — only in upper blue zone */
-.hero-zone::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+/* ═══════════════════════════ BACKGROUND LAYERS ═══════════════════════════ */
+.bg {
+  position: fixed; inset: 0; z-index: -3; pointer-events: none;
   background:
-    radial-gradient(600px 420px at 12% 18%, rgba(59,130,246,0.30), transparent 65%),
-    radial-gradient(520px 380px at 88% 60%, rgba(56,189,248,0.18), transparent 62%);
+    radial-gradient(900px 620px at 12% -8%, rgba(99,102,241,.22), transparent 60%),
+    radial-gradient(820px 560px at 88% 8%, rgba(34,211,238,.13), transparent 58%),
+    radial-gradient(720px 620px at 50% 118%, rgba(139,92,246,.16), transparent 60%),
+    linear-gradient(180deg, #06080f 0%, #080b15 45%, #06080f 100%);
+}
+.bg::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(148,163,184,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,.045) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 0%, transparent 78%);
+}
+.bg::after {
+  content: ""; position: absolute; inset: 0; opacity: .35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
 }
 
-.lang-bar { position: absolute; top: 22px; right: 24px; z-index: 5; }
-.slider-track {
-  position: relative; display: inline-flex; padding: 4px; border-radius: 999px;
-  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+/* ═══════════════════════════ NAV ═══════════════════════════ */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px clamp(16px, 4vw, 40px);
+  background: rgba(6,8,15,.6);
+  backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--border);
 }
-.slider-thumb {
-  position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
-  border-radius: 999px; background: rgba(255,255,255,0.92);
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--grad);
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 17px; color: #fff;
+  box-shadow: 0 6px 20px rgba(99,102,241,.4);
+  letter-spacing: -0.5px;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
+.brand-tag { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: .4px; }
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 999px;
+}
+.status-pill .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--warn);
+  box-shadow: 0 0 8px var(--warn);
+}
+.status-pill.ready .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status-pill.error .dot { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+.seg {
+  position: relative; display: inline-flex; padding: 3px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.seg button {
+  position: relative; z-index: 2; border: none; background: transparent;
+  padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  color: var(--muted); transition: color .25s; -webkit-tap-highlight-color: transparent;
+}
+.seg button.active { color: #fff; }
+.seg .thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 0; width: 0;
+  border-radius: 999px; background: var(--grad);
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
   transform: translateX(0);
-  transition: transform .45s cubic-bezier(.22,1.2,.36,1), width .45s cubic-bezier(.22,1.2,.36,1);
+  transition: transform .4s cubic-bezier(.22,1.2,.36,1), width .4s cubic-bezier(.22,1.2,.36,1);
   will-change: transform, width;
 }
-.slider-track .opt {
-  position: relative; z-index: 2; border: none; background: transparent;
-  padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
-  color: rgba(219,231,255,0.75); cursor: pointer;
-  transition: color .3s; box-shadow: none; -webkit-tap-highlight-color: transparent;
-}
-.slider-track .opt.active { color: #123c9e; }
 
-.hero-inner { max-width: 1080px; width: 100%; text-align: center; position: relative; z-index: 1; }
-.hero-inner h1 {
-  font-size: 4.2rem; font-weight: 900; letter-spacing: -2px; color: #fff;
-  text-shadow: 0 4px 40px rgba(0,10,40,0.5);
+.nav-cli {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  padding: 7px 14px; border-radius: 999px;
+  transition: border-color .2s, background .2s, transform .2s;
 }
-.hero-inner h1 .accent { color: #7dd3fc; }
-.hero-sub { color: rgba(203,222,255,0.9); font-size: 1.2rem; margin-top: 14px; font-weight: 500; }
+.nav-cli:hover { border-color: rgba(99,102,241,.5); background: var(--surface-3); transform: translateY(-1px); }
+.nav-cli .arrow { color: var(--cyan); }
+
+/* ═══════════════════════════ LAYOUT ═══════════════════════════ */
+main { position: relative; z-index: 1; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px); }
+
+/* ═══════════════════════════ HERO ═══════════════════════════ */
+.hero { padding: clamp(48px, 8vw, 88px) 0 36px; text-align: center; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(34,211,238,.08); border: 1px solid rgba(34,211,238,.22);
+  padding: 6px 14px; border-radius: 999px;
+}
+.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.hero h1 {
+  margin-top: 22px;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  font-weight: 900; letter-spacing: -3px; line-height: 1.02;
+  color: var(--text);
+}
+.hero h1 .grad {
+  background: var(--grad);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero-sub {
+  margin: 18px auto 0; max-width: 620px;
+  color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); font-weight: 500;
+}
 .hero-badge {
-  display: inline-block; margin-top: 26px; padding: 10px 26px; border-radius: 999px;
-  font-weight: 700; font-size: 0.92rem; color: #dbeafe;
-  background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.22);
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 24px; padding: 10px 22px; border-radius: 999px;
+  font-weight: 700; font-size: 14px; color: #dbe4f5;
+  background: var(--grad-soft); border: 1px solid var(--border-strong);
   backdrop-filter: blur(10px);
 }
 
-/* ══════════ KILL PANEL: inside hero ══════════ */
+/* kill panel */
 .kill-panel {
-  margin-top: 44px; text-align: left;
-  background: rgba(10,20,55,0.45);
-  border: 1px solid rgba(148,180,255,0.18);
-  border-radius: 24px; padding: 26px 28px;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 30px 80px rgba(2,8,30,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+  margin: 40px auto 0; text-align: left;
+  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 26px 28px;
+  box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
 }
-.kill-panel h2 {
-  font-size: 0.75rem; letter-spacing: 3px; color: rgba(148,180,255,0.75);
-  text-transform: uppercase; margin-bottom: 16px; font-weight: 800; text-align: center;
+.kill-panel::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,.6), rgba(34,211,238,.5), transparent);
 }
-.kill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.kill-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.kill-head h2 {
+  font-size: 12px; letter-spacing: 2.5px; color: var(--muted);
+  text-transform: uppercase; font-weight: 800;
+}
+.kill-head .tag {
+  font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--danger); background: rgba(251,113,133,.1);
+  border: 1px solid rgba(251,113,133,.25);
+  padding: 4px 10px; border-radius: 999px;
+}
+.kill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
 .kill-card {
-  text-align: center; padding: 14px 10px; border-radius: 14px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(148,180,255,0.14);
-  transition: background .2s, border-color .2s;
+  position: relative; display: flex; flex-direction: column; gap: 3px;
+  padding: 13px 14px; border-radius: 13px;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: border-color .2s, background .2s, transform .2s;
+  overflow: hidden;
 }
-.kill-card:hover { background: rgba(255,255,255,0.10); border-color: rgba(125,211,252,0.4); }
-.kill-card .name { font-size: 0.92rem; font-weight: 700; color: #e8efff; }
-.kill-card .layer { font-size: 0.66rem; color: rgba(148,180,255,0.65); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.8px; }
+.kill-card:hover { background: var(--surface-2); border-color: rgba(251,113,133,.4); transform: translateY(-2px); }
+.kill-card .name {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 7px;
+}
+.kill-card .name::before {
+  content: "✂"; font-size: 12px; color: var(--faint); transition: color .2s;
+}
+.kill-card:hover .name::before { color: var(--danger); }
+.kill-card .layer {
+  font-size: 11px; color: var(--faint); letter-spacing: .3px; line-height: 1.45;
+}
+.kill-card .cut {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 9px; font-weight: 800; letter-spacing: 1px;
+  color: transparent; text-transform: uppercase;
+  transition: color .2s;
+}
+.kill-card:hover .cut { color: var(--danger); }
 
-/* scroll hint removed — hero is compact now */
+/* ═══════════════════════════ EDITOR ═══════════════════════════ */
+.editor-section { padding: 28px 0 10px; }
+.editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 860px) { .editor-grid { grid-template-columns: 1fr; } }
 
-/* transition band removed — hero curve + card overlap replaces it */
+.editor-pane {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: border-color .25s, box-shadow .25s;
+}
+.editor-pane:focus-within { border-color: rgba(99,102,241,.5); box-shadow: var(--glow); }
+.editor-pane.output-pane:focus-within { border-color: rgba(34,211,238,.4); }
 
-/* ══════════ MAIN: clean light zone ══════════ */
-.main-zone {
-  width: 100%; max-width: 1080px;
-  padding: 0 20px 40px;
-  display: flex; flex-direction: column; align-items: center;
-  position: relative; z-index: 2; /* above hero curve */
+.pane-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 11px 16px;
+  background: rgba(255,255,255,.025);
+  border-bottom: 1px solid var(--border);
 }
+.pane-bar .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.traffic { display: flex; gap: 6px; }
+.traffic i { width: 11px; height: 11px; border-radius: 50%; }
+.traffic i:nth-child(1) { background: #ff5f57; }
+.traffic i:nth-child(2) { background: #febc2e; }
+.traffic i:nth-child(3) { background: #28c840; }
+.pane-file { font-family: var(--mono); font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.pane-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--cyan);
+}
+.pane-right { display: flex; align-items: center; gap: 12px; }
+.io-meta { font-family: var(--mono); font-size: 11px; color: var(--faint); }
 
-.grid { display: flex; gap: 20px; width: 100%; flex-wrap: wrap; }
-.pane {
-  flex: 1; min-width: 340px;
-  background: rgba(255,255,255,0.78);
-  backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255,255,255,0.85);
-  border-radius: 20px; padding: 22px;
-  box-shadow: 0 16px 48px rgba(18,60,158,0.14);
+.icon-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  color: var(--muted); font-size: 12px; font-weight: 700;
+  padding: 5px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s, background .2s;
 }
-.pane h2 {
-  font-size: 0.72rem; font-weight: 800; color: #8fa3c8;
-  text-transform: uppercase; letter-spacing: 1.8px; margin-bottom: 12px;
-}
-textarea {
-  width: 100%; height: 280px;
-  background: #f8faff; color: #16244d;
-  border: 1px solid #dbe6f8; border-radius: 12px;
-  padding: 14px;
-  font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
-  font-size: 13px; line-height: 1.7;
-  resize: vertical; outline: none;
-  transition: border-color .2s, box-shadow .2s;
-}
-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.10); }
+.icon-btn:hover { color: var(--text); border-color: rgba(99,102,241,.5); background: var(--surface-3); }
+.icon-btn:disabled { opacity: .4; cursor: not-allowed; }
 
-.controls { display: flex; gap: 12px; align-items: center; margin: 24px 0 8px; flex-wrap: wrap; justify-content: center; }
-button {
-  border: 1px solid #dbe6f8; border-radius: 999px; padding: 11px 24px;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  background: #fff; color: #16244d;
-  transition: transform .15s, box-shadow .15s, background .15s;
+.editor-body { display: flex; height: 320px; }
+.gutter {
+  width: 46px; flex: none; overflow: hidden;
+  padding: 15px 10px 15px 0; text-align: right;
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  color: var(--faint); background: rgba(0,0,0,.16);
+  user-select: none; white-space: pre;
 }
-button:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(18,60,158,0.12); }
-button.primary {
-  background: linear-gradient(135deg, #14357e, #2563eb);
-  color: #fff; border: none;
-  box-shadow: 0 8px 24px rgba(37,99,235,0.30);
+textarea.code {
+  flex: 1; min-width: 0; border: none; outline: none; resize: none;
+  background: transparent; color: #dbe4f5;
+  padding: 15px 16px;
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  white-space: pre; overflow: auto;
+  tab-size: 2;
 }
-button:disabled { opacity: 0.45; cursor: not-allowed; }
+textarea.code::placeholder { color: var(--faint); }
+textarea.code::-webkit-scrollbar, .gutter::-webkit-scrollbar { width: 10px; height: 10px; }
+textarea.code::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+textarea.code::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); border: 2px solid transparent; background-clip: content-box; }
+textarea.code::-webkit-scrollbar-corner { background: transparent; }
+
+/* ═══════════════════════════ CONTROLS ═══════════════════════════ */
+.controls {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin: 26px 0 8px; flex-wrap: wrap;
+}
+.btn-obfuscate {
+  display: inline-flex; align-items: center; gap: 9px;
+  background: var(--grad); color: #fff;
+  border: none; border-radius: 999px;
+  padding: 14px 34px; font-size: 15px; font-weight: 800; letter-spacing: .2px;
+  box-shadow: 0 10px 32px rgba(99,102,241,.38);
+  transition: transform .18s, box-shadow .18s, filter .18s;
+}
+.btn-obfuscate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 44px rgba(99,102,241,.5); filter: brightness(1.06); }
+.btn-obfuscate:active:not(:disabled) { transform: translateY(0); }
+.btn-obfuscate:disabled { opacity: .5; cursor: not-allowed; }
+.btn-obfuscate .bolt { font-size: 16px; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  color: var(--text); border-radius: 999px;
+  padding: 12px 20px; font-size: 13.5px; font-weight: 700;
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.btn-ghost:hover:not(:disabled) { border-color: rgba(99,102,241,.5); background: var(--surface-3); transform: translateY(-1px); }
+.btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
 
 .tier-switch {
-  position: relative; display: inline-flex; padding: 4px; border-radius: 999px;
-  background: #eaf1fd; border: 1px solid #dbe6f8;
+  position: relative; display: inline-flex; padding: 4px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border-strong);
 }
 .tier-thumb {
   position: absolute; top: 4px; bottom: 4px; left: 0; width: 0;
-  border-radius: 999px; background: linear-gradient(135deg, #14357e, #2563eb);
-  box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+  border-radius: 11px; background: var(--grad);
+  box-shadow: 0 6px 18px rgba(99,102,241,.4);
   transform: translateX(0);
-  transition: transform .45s cubic-bezier(.22,1.2,.36,1), width .45s cubic-bezier(.22,1.2,.36,1);
+  transition: transform .4s cubic-bezier(.22,1.2,.36,1), width .4s cubic-bezier(.22,1.2,.36,1);
   will-change: transform, width;
 }
 .tier-switch button {
   position: relative; z-index: 2; border: none; background: transparent;
-  padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
-  color: #5a6b8c; box-shadow: none; -webkit-tap-highlight-color: transparent;
-  transition: color .3s;
+  padding: 8px 15px; border-radius: 11px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .25s;
 }
-.tier-switch button.active { color: #fff; }
-.tier-switch button:hover { transform: none; box-shadow: none; }
+.tier-switch .t-name { font-size: 12.5px; font-weight: 800; letter-spacing: .3px; color: var(--muted); transition: color .25s; }
+.tier-switch .t-sub { font-size: 9.5px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--faint); transition: color .25s; }
+.tier-switch button.active .t-name, .tier-switch button.active .t-sub { color: #fff; }
 
-.stats {
-  display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; font-size: 13px; color: #5a6b8c;
-  background: #f4f8fe; border: 1px solid #e3ecfa; border-radius: 12px; padding: 12px 16px;
+/* ═══════════════════════════ STATS ═══════════════════════════ */
+.stats-row {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 22px;
 }
-.stats b { color: #14357e; }
+@media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 15px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: border-color .25s, background .25s;
+}
+.stat:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.stat .k { font-size: 10.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--faint); }
+.stat .v { font-family: var(--mono); font-size: 17px; font-weight: 800; color: var(--text); }
+.stat .v.ok { color: var(--success); }
+.stat .v.warn { color: var(--warn); }
+.stat .v.accent { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-/* ══════════ ABOUT ══════════ */
-.about { width: 100%; margin-top: 44px; background: rgba(255,255,255,0.78); backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); border: 1px solid rgba(255,255,255,0.85); border-radius: 24px; padding: 40px; box-shadow: 0 16px 48px rgba(18,60,158,0.10); }
-.about h2 { font-size: 1.6rem; font-weight: 900; color: #0d1730; margin-bottom: 14px; letter-spacing: -0.5px; }
-.about h3 { font-size: 1rem; font-weight: 800; color: #14357e; margin: 24px 0 10px; }
-.about p { color: #4a5a7d; line-height: 1.8; font-size: 0.95rem; }
-.about ul { margin: 10px 0 10px 20px; color: #4a5a7d; line-height: 1.9; font-size: 0.93rem; }
-.about li { margin-bottom: 5px; }
-.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 14px; }
+/* ═══════════════════════════ ABOUT ═══════════════════════════ */
+.about {
+  margin-top: 52px; padding: clamp(28px, 5vw, 48px);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.about h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; }
+.about h3 { font-size: 15px; font-weight: 800; color: var(--cyan); margin: 28px 0 12px; letter-spacing: .2px; }
+.about p { color: var(--muted); line-height: 1.85; font-size: 15px; max-width: 720px; }
+.about ul { margin: 8px 0 0 20px; color: var(--muted); line-height: 2; font-size: 14.5px; }
+.about li { margin-bottom: 6px; }
+.about li::marker { color: var(--violet); }
+
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 13px; margin-top: 6px; }
 .feature {
-  padding: 20px; border-radius: 16px;
-  background: linear-gradient(180deg, #f4f8fe, #eaf1fd);
-  border: 1px solid #dbe6f8;
+  position: relative; padding: 20px; border-radius: 15px;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: border-color .25s, transform .25s, background .25s;
+  overflow: hidden;
 }
-.feature b { display: block; font-size: 0.94rem; color: #0d1730; margin-bottom: 6px; }
-.feature span { font-size: 0.84rem; color: #5a6b8c; line-height: 1.6; }
+.feature:hover { border-color: rgba(139,92,246,.4); transform: translateY(-3px); background: var(--surface-2); }
+.feature .f-icon {
+  width: 34px; height: 34px; border-radius: 9px; margin-bottom: 13px;
+  background: var(--grad-soft); border: 1px solid var(--border-strong);
+  display: grid; place-items: center; font-size: 16px;
+}
+.feature b { display: block; font-size: 15px; color: var(--text); margin-bottom: 6px; letter-spacing: -0.2px; }
+.feature span { font-size: 13px; color: var(--muted); line-height: 1.65; }
 
-/* ══════════ TILES ══════════ */
-.tiles { display: flex; gap: 16px; width: 100%; margin: 36px 0 8px; flex-wrap: wrap; }
+/* ═══════════════════════════ FOOTER ═══════════════════════════ */
+.footer { margin-top: 48px; padding: 36px 0 48px; text-align: center; border-top: 1px solid var(--border); }
+.tiles { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 26px; }
 .tile {
-  flex: 1; min-width: 160px; text-align: center; padding: 26px 16px; border-radius: 18px;
-  background: rgba(255,255,255,0.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.85);
-  box-shadow: 0 16px 44px rgba(18,60,158,0.12);
+  min-width: 150px; text-align: center; padding: 22px 26px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--border);
 }
-.tile .num { font-size: 2.4rem; font-weight: 900; color: #14357e; line-height: 1; }
-.tile .label { font-size: 0.72rem; color: #8fa3c8; text-transform: uppercase; letter-spacing: 1.4px; margin-top: 10px; font-weight: 700; }
+.tile .num { font-size: 2rem; font-weight: 900; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.1; }
+.tile .label { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 8px; font-weight: 700; }
+.note { color: var(--faint); font-size: 13px; max-width: 640px; margin: 0 auto; }
+.note a { color: var(--cyan); font-weight: 600; }
+.note a:hover { text-decoration: underline; }
 
-.note { margin-top: 28px; color: #5a6b8c; font-size: 13px; text-align: center; max-width: 720px; }
-.note a { color: #2563eb; font-weight: 600; }
-
-.loading { color: #b45309; font-weight: 700; }
-#status { font-size: 14px; font-weight: 600; color: #16244d; }
-
-@media (max-width: 640px) {
-  .hero-inner h1 { font-size: 2.6rem; letter-spacing: -1px; }
-  .hero-zone { padding: 90px 16px 100px; }
-  .about { padding: 26px; }
+/* ═══════════════════════════ REVEAL ANIMATION ═══════════════════════════ */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════════ HERO (deep blue, self-contained) ═══════════ -->
-<section class="hero-zone">
-  <div class="lang-bar">
-    <div class="slider-track" id="lang-track">
-      <div class="slider-thumb" id="lang-thumb"></div>
-      <button class="opt active" data-lang="en">EN</button>
-      <button class="opt" data-lang="zh">中文</button>
+<div class="bg" aria-hidden="true"></div>
+
+<!-- ═══════════ NAV ═══════════ -->
+<header class="nav">
+  <div class="brand">
+    <div class="logo">C</div>
+    <div class="brand-text">
+      <span class="brand-name">CSA</span>
+      <span class="brand-tag" data-i18n="brand_tag">Luau Obfuscator</span>
     </div>
   </div>
+  <div class="nav-right">
+    <span class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text" data-i18n="status_loading">Loading engine…</span></span>
+    <div class="seg" id="lang-track">
+      <div class="thumb" id="lang-thumb"></div>
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="zh">中文</button>
+    </div>
+    <a class="nav-cli" href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" onclick="try{ fetch('https://api.csa.cua123.ccwu.cc/download', {method:'POST'}); }catch(e){}">
+      <span data-i18n="nav_cli">Download CLI</span><span class="arrow">→</span>
+    </a>
+  </div>
+</header>
 
-  <div class="hero-inner">
-    <h1><span class="accent">CSA</span> — <span data-i18n="hero_title">Luau Obfuscator</span></h1>
-    <p class="hero-sub" data-i18n="hero_sub">The kill line. Measured, not marketing.</p>
-    <span class="hero-badge" data-i18n="hero_kill">⚔ Anything weaker at any price gets cut</span>
+<main>
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow" data-i18n="eyebrow">Measured · Not marketing</span>
+      <h1><span class="grad">CSA</span> — <span data-i18n="hero_title">Luau Obfuscator</span></h1>
+      <p class="hero-sub" data-i18n="hero_sub">The kill line. Measured, not marketing.</p>
+      <span class="hero-badge" data-i18n="hero_kill">⚔ Anything weaker at any price gets cut</span>
 
-    <div class="kill-panel">
-      <h2 data-i18n="cut_title">CUT BY THE KILL LINE</h2>
-      <div class="kill-grid">
-        <div class="kill-card"><div class="name">goofyscator V9</div><div class="layer" data-i18n="cut_gofy">3× loadstring leak · in-house XOR</div></div>
-        <div class="kill-card"><div class="name">Prometheus</div><div class="layer" data-i18n="cut_prom">custom PRNG · incomplete Luau</div></div>
-        <div class="kill-card"><div class="name">Ironbrew</div><div class="layer" data-i18n="cut_iron">cracked · legacy VM</div></div>
-        <div class="kill-card"><div class="name">Hercules</div><div class="layer" data-i18n="cut_herc">outdated bytecode</div></div>
-        <div class="kill-card"><div class="name">MoonSec</div><div class="layer" data-i18n="cut_moon">public deobfuscator exists</div></div>
-        <div class="kill-card"><div class="name">AztupBrew</div><div class="layer" data-i18n="cut_azt">toy obfuscation</div></div>
-        <div class="kill-card"><div class="name">Ironbrew 2</div><div class="layer" data-i18n="cut_iron2">public deobfuscator + YouTube walkthroughs</div></div>
-        <div class="kill-card"><div class="name">MoonSec V2</div><div class="layer" data-i18n="cut_moon2">public deobfuscator targets it</div></div>
-        <div class="kill-card"><div class="name">Prometheus</div><div class="layer" data-i18n="cut_prom2">3 public deobfuscators</div></div>
-        <div class="kill-card"><div class="name">77fuscator</div><div class="layer" data-i18n="cut_77">public dumper regex</div></div>
-        <div class="kill-card"><div class="name">Boronide</div><div class="layer" data-i18n="cut_boro">public dumper regex</div></div>
-        <div class="kill-card"><div class="name">Synapse Xen</div><div class="layer" data-i18n="cut_xen">locked behind paid exploit</div></div>
+      <div class="kill-panel reveal">
+        <div class="kill-head">
+          <h2 data-i18n="cut_title">Cut by the kill line</h2>
+          <span class="tag" data-i18n="cut_tag">12 eliminated</span>
+        </div>
+        <div class="kill-grid">
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">goofyscator V9</div><div class="layer" data-i18n="cut_gofy">3× loadstring leak · in-house XOR</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Prometheus</div><div class="layer" data-i18n="cut_prom">custom PRNG · incomplete Luau</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Ironbrew</div><div class="layer" data-i18n="cut_iron">cracked · legacy VM</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Hercules</div><div class="layer" data-i18n="cut_herc">outdated bytecode</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">MoonSec</div><div class="layer" data-i18n="cut_moon">public deobfuscator exists</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">AztupBrew</div><div class="layer" data-i18n="cut_azt">toy obfuscation</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Ironbrew 2</div><div class="layer" data-i18n="cut_iron2">public deobfuscator + YouTube walkthroughs</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">MoonSec V2</div><div class="layer" data-i18n="cut_moon2">public deobfuscator targets it</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Prometheus</div><div class="layer" data-i18n="cut_prom2">3 public deobfuscators</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">77fuscator</div><div class="layer" data-i18n="cut_77">public dumper regex</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Boronide</div><div class="layer" data-i18n="cut_boro">public dumper regex</div></div>
+          <div class="kill-card"><span class="cut" data-i18n="cut_word">cut</span><div class="name">Synapse Xen</div><div class="layer" data-i18n="cut_xen">locked behind paid exploit</div></div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══════════ MAIN (clean light) ═══════════ -->
-<main class="main-zone">
+  <!-- ═══════════ EDITOR ═══════════ -->
+  <section class="editor-section">
+    <div class="wrap">
+      <div class="editor-grid reveal">
+        <div class="editor-pane">
+          <div class="pane-bar">
+            <div class="left">
+              <div class="traffic"><i></i><i></i><i></i></div>
+              <span class="pane-file" data-i18n="file_in">input.luau</span>
+            </div>
+            <div class="pane-right">
+              <span class="io-meta" data-i18n="input_label">Input</span>
+              <span class="io-meta" id="in-count">0 chars · 1 lines</span>
+            </div>
+          </div>
+          <div class="editor-body">
+            <div class="gutter" id="in-gutter">1</div>
+            <textarea class="code" id="input" spellcheck="false" wrap="off">print("hello world")</textarea>
+          </div>
+        </div>
 
-  <div class="grid">
-    <div class="pane">
-      <h2 data-i18n="input_label">Input (Luau)</h2>
-      <textarea id="input">print("hello world")</textarea>
-    </div>
-    <div class="pane">
-      <h2 data-i18n="output_label">Obfuscated output</h2>
-      <textarea id="output" readonly placeholder="Result will appear here..." style="color:#8fa3c8;"></textarea>
-      <div class="stats" id="stats" style="display:none;">
-        <span><span data-i18n="st_tier">Tier</span>: <b id="stat-tier">-</b></span>
-        <span><span data-i18n="st_size">Size</span>: <b id="stat-size">-</b></span>
-        <span><span data-i18n="st_ratio">Ratio</span>: <b id="stat-ratio">-</b></span>
-        <span><span data-i18n="st_time">Time</span>: <b id="stat-time">-</b></span>
-        <span><span data-i18n="st_leak">Plaintext leakage</span>: <b id="stat-leak" style="color:#059669;">0</b></span>
+        <div class="editor-pane output-pane">
+          <div class="pane-bar">
+            <div class="left">
+              <div class="traffic"><i></i><i></i><i></i></div>
+              <span class="pane-file" data-i18n="file_out">obfuscated.lua</span>
+            </div>
+            <div class="pane-right">
+              <span class="io-meta" id="out-count">0 chars · 0 lines</span>
+              <button class="icon-btn" id="copy" disabled data-i18n="btn_copy">⧉ Copy</button>
+            </div>
+          </div>
+          <div class="editor-body">
+            <div class="gutter" id="out-gutter"></div>
+            <textarea class="code" id="output" readonly spellcheck="false" wrap="off" placeholder="Result will appear here…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls reveal">
+        <button class="btn-obfuscate" id="btn" disabled>
+          <span class="bolt">⚡</span><span data-i18n="btn_obf">Obfuscate</span>
+        </button>
+        <div class="tier-switch" id="tier-switch">
+          <div class="tier-thumb" id="tier-thumb"></div>
+          <button data-tier="lite"><span class="t-name" data-i18n="tier_lite">lite</span><span class="t-sub" data-i18n="tier_lite_sub">fast</span></button>
+          <button data-tier="standard"><span class="t-name" data-i18n="tier_standard">standard</span><span class="t-sub" data-i18n="tier_standard_sub">balanced</span></button>
+          <button data-tier="max" class="active"><span class="t-name" data-i18n="tier_max">max</span><span class="t-sub" data-i18n="tier_max_sub">maximum</span></button>
+        </div>
+        <button class="btn-ghost" id="upload">⬆ <span data-i18n="btn_up">Upload</span></button>
+        <input type="file" id="fileInput" accept=".lua,.luau,.txt" style="display:none;">
+        <button class="btn-ghost" id="download" disabled>⬇ <span data-i18n="btn_dl">Download .lua</span></button>
+      </div>
+
+      <div class="stats-row reveal" id="stats" style="display:none;">
+        <div class="stat"><span class="k" data-i18n="st_tier">Tier</span><span class="v accent" id="stat-tier">-</span></div>
+        <div class="stat"><span class="k" data-i18n="st_size">Size</span><span class="v" id="stat-size">-</span></div>
+        <div class="stat"><span class="k" data-i18n="st_ratio">Ratio</span><span class="v" id="stat-ratio">-</span></div>
+        <div class="stat"><span class="k" data-i18n="st_time">Time</span><span class="v" id="stat-time">-</span></div>
+        <div class="stat"><span class="k" data-i18n="st_leak">Leakage</span><span class="v ok" id="stat-leak">0</span></div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="controls">
-    <button class="primary" id="btn" data-i18n="btn_obf">Obfuscate</button>
-    <div class="tier-switch" id="tier-switch">
-      <div class="tier-thumb" id="tier-thumb"></div>
-      <button data-tier="lite">lite ⚡</button>
-      <button data-tier="standard">standard 🛡</button>
-      <button class="active" data-tier="max">max 🔥</button>
-    </div>
-    <button id="upload" data-i18n="btn_up">⬆ Upload</button>
-    <input type="file" id="fileInput" accept=".lua,.luau,.txt" style="display:none;">
-    <button id="download" disabled data-i18n="btn_dl">⬇ Download .lua</button>
-    <span id="status"></span>
-  </div>
-
-  <div class="about">
+  <!-- ═══════════ ABOUT ═══════════ -->
+  <section class="about wrap reveal">
     <h2 data-i18n="about_title">Why CSA draws the kill line</h2>
     <p data-i18n="about_p1">Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.</p>
     <h3 data-i18n="about_what">What CSA does</h3>
     <div class="feature-grid">
-      <div class="feature"><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
-      <div class="feature"><b data-i18n="f2_t">Standard cipher, per-string keys</b><span data-i18n="f2_d">Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
-      <div class="feature"><b data-i18n="f3_t">Layered decryption</b><span data-i18n="f3_d">Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
-      <div class="feature"><b data-i18n="f4_t">Anti-dump &amp; anti-debug</b><span data-i18n="f4_d">The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
-      <div class="feature"><b data-i18n="f5_t">Identity gate</b><span data-i18n="f5_d">A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
-      <div class="feature"><b data-i18n="f6_t">Zero plaintext leakage</b><span data-i18n="f6_d">loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
+      <div class="feature"><div class="f-icon">🧠</div><b data-i18n="f1_t">Virtualized bytecode</b><span data-i18n="f1_d">Your logic runs on a custom VM — not native Luau, so static analysis hits a wall.</span></div>
+      <div class="feature"><div class="f-icon">🔐</div><b data-i18n="f2_t">Standard cipher, per-string keys</b><span data-i18n="f2_d">Speck-CTR with an independent 128-bit key per string. Not in-house XOR.</span></div>
+      <div class="feature"><div class="f-icon">🪆</div><b data-i18n="f3_t">Layered decryption</b><span data-i18n="f3_d">Compression → fragmentation → cipher → integrity. Break one layer, the rest still hold.</span></div>
+      <div class="feature"><div class="f-icon">🛡️</div><b data-i18n="f4_t">Anti-dump &amp; anti-debug</b><span data-i18n="f4_d">The output fights back at runtime — string.dump interception, hook fingerprinting, memory erasure.</span></div>
+      <div class="feature"><div class="f-icon">🚪</div><b data-i18n="f5_t">Identity gate</b><span data-i18n="f5_d">A type-lock proof that silently corrupts the key if an attacker stubs or skips it.</span></div>
+      <div class="feature"><div class="f-icon">🔒</div><b data-i18n="f6_t">Zero plaintext leakage</b><span data-i18n="f6_d">loadstring, API names, strings — none appear in the output. Measured against real obfuscators.</span></div>
     </div>
     <h3 data-i18n="about_honest">What CSA is honest about</h3>
     <ul>
@@ -323,30 +558,38 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
       <li data-i18n="hon2">The strength comes from the VM and the cipher, not from a marketing page.</li>
       <li data-i18n="hon3">Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.</li>
     </ul>
-  </div>
-
-  <div class="tiles">
-    <div class="tile"><div class="num" id="total-count">—</div><div class="label" data-i18n="total_obf">Total obfuscations</div></div>
-    <div class="tile"><div class="num" id="total-downloads">—</div><div class="label" data-i18n="total_dl">Downloads</div></div>
-  </div>
-
-  <div class="note">
-    <span data-i18n="note1">No server — the obfuscator compiles to WebAssembly and runs locally in your browser.</span>
-    <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2" onclick="try{ fetch('https://api.csa.cua123.ccwu.cc/download', {method:'POST'}); }catch(e){}">Download the CLI →</a>
-  </div>
-
+  </section>
 </main>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="tiles reveal">
+      <div class="tile"><div class="num" id="total-count">—</div><div class="label" data-i18n="total_obf">Total obfuscations</div></div>
+      <div class="tile"><div class="num" id="total-downloads">—</div><div class="label" data-i18n="total_dl">Downloads</div></div>
+    </div>
+    <p class="note">
+      <span data-i18n="note1">No server — the obfuscator compiles to WebAssembly and runs locally in your browser.</span>
+      <a href="https://github.com/2233qazwsx0/CSA/releases" target="_blank" data-i18n="note2" onclick="try{ fetch('https://api.csa.cua123.ccwu.cc/download', {method:'POST'}); }catch(e){}">Download the CLI →</a>
+    </p>
+  </div>
+</footer>
 
 <script src="./wasm_exec.js"></script>
 <script>
+/* ═══════════════════════════ I18N ═══════════════════════════ */
 const I18N = {
   en: {
+    brand_tag: "Luau Obfuscator", eyebrow: "Measured · Not marketing",
+    status_loading: "Loading engine…", status_ready: "Ready", status_obfuscating: "Obfuscating…", status_done: "Done", status_error: "Error",
+    nav_cli: "Download CLI",
     hero_title: "Luau Obfuscator", hero_sub: "The kill line. Measured, not marketing.", hero_kill: "⚔ Anything weaker at any price gets cut",
-    cut_title: "CUT BY THE KILL LINE",
+    cut_title: "Cut by the kill line", cut_tag: "12 eliminated", cut_word: "cut",
     cut_gofy: "3× loadstring leak · in-house XOR", cut_prom: "custom PRNG · incomplete Luau", cut_iron: "cracked · legacy VM", cut_herc: "outdated bytecode", cut_moon: "public deobfuscator exists", cut_azt: "toy obfuscation", cut_iron2: "public deobfuscator + YouTube walkthroughs", cut_moon2: "public deobfuscator targets it", cut_prom2: "3 public deobfuscators", cut_77: "public dumper regex", cut_boro: "public dumper regex", cut_xen: "locked behind paid exploit",
-    input_label: "Input (Luau)", output_label: "Obfuscated output",
-    st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Plaintext leakage",
-    btn_obf: "Obfuscate", btn_up: "⬆ Upload", btn_dl: "⬇ Download .lua",
+    file_in: "input.luau", file_out: "obfuscated.lua", input_label: "Input",
+    btn_obf: "Obfuscate", btn_up: "Upload", btn_dl: "Download .lua", btn_copy: "⧉ Copy",
+    tier_lite: "lite", tier_lite_sub: "fast", tier_standard: "standard", tier_standard_sub: "balanced", tier_max: "max", tier_max_sub: "maximum",
+    st_tier: "Tier", st_size: "Size", st_ratio: "Ratio", st_time: "Time", st_leak: "Leakage",
     about_title: "Why CSA draws the kill line",
     about_p1: "Most Luau obfuscators stop at renaming variables and XOR-ing strings. CSA goes further — it compiles your script into a self-contained virtual machine, encrypts every string with a standard cipher under an independent key, and wraps the whole thing in a layered decryption chain that a reverse engineer has to unwind in full before seeing a single line of your logic.",
     about_what: "What CSA does",
@@ -362,16 +605,23 @@ const I18N = {
     hon3: "Every number above is reproducible — the comparison was run on the same input, with plaintext leaks counted by grep.",
     note1: "No server — the obfuscator compiles to WebAssembly and runs locally in your browser.",
     note2: "Download the CLI →",
-    total_obf: "Total obfuscations",
-    total_dl: "Downloads"
+    total_obf: "Total obfuscations", total_dl: "Downloads",
+    chars: "chars", lines: "lines", copied: "Copied!", copy_fail: "Copy failed",
+    err_no_input: "Please enter some code.", err_engine: "Engine still loading…",
+    load_failed: "WASM load failed",
+    uploaded: "Loaded"
   },
   zh: {
+    brand_tag: "Luau 混淆器", eyebrow: "实测 · 不靠营销",
+    status_loading: "引擎加载中…", status_ready: "就绪", status_obfuscating: "混淆中…", status_done: "完成", status_error: "出错",
+    nav_cli: "下载 CLI",
     hero_title: "Luau 混淆器", hero_sub: "斩杀线。用实测说话，不靠营销。", hero_kill: "⚔ 任何价格上比我弱的，全部出局",
-    cut_title: "被斩杀线淘汰的",
+    cut_title: "被斩杀线淘汰的", cut_tag: "12 个已淘汰", cut_word: "淘汰",
     cut_gofy: "loadstring 泄漏×3 · 自制 XOR", cut_prom: "自制 PRNG · Luau 支持不完整", cut_iron: "已被破解 · 旧 VM", cut_herc: "过时字节码", cut_moon: "存在公开反混淆器", cut_azt: "玩具级混淆", cut_iron2: "公开反混淆器 + YouTube 教程", cut_moon2: "公开反混淆器针对它", cut_prom2: "3 个公开反混淆器", cut_77: "公开 dump 正则", cut_boro: "公开 dump 正则", cut_xen: "锁在付费 exploit 后面",
-    input_label: "输入（Luau）", output_label: "混淆输出",
-    st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "明文泄漏",
-    btn_obf: "混淆", btn_up: "⬆ 上传", btn_dl: "⬇ 下载 .lua",
+    file_in: "输入.luau", file_out: "混淆.lua", input_label: "输入",
+    btn_obf: "混淆", btn_up: "上传", btn_dl: "下载 .lua", btn_copy: "⧉ 复制",
+    tier_lite: "lite", tier_lite_sub: "快速", tier_standard: "standard", tier_standard_sub: "均衡", tier_max: "max", tier_max_sub: "最强",
+    st_tier: "等级", st_size: "大小", st_ratio: "膨胀率", st_time: "耗时", st_leak: "泄漏",
     about_title: "为什么 CSA 划出斩杀线",
     about_p1: "大多数 Luau 混淆器只做到重命名变量和 XOR 字符串。CSA 走得更远——它把你的脚本编译成自包含的虚拟机，用标准密码算法为每个字符串配一把独立的密钥加密，再整体包进层层解密链，逆向者必须完整解开每一层，才能看到你的一行逻辑。",
     about_what: "CSA 做了什么",
@@ -387,17 +637,37 @@ const I18N = {
     hon3: "上面每个数字都可复现——同一输入跑的对比，明文泄漏用 grep 数出来。",
     note1: "无服务器——混淆器编译成 WebAssembly，在你浏览器本地运行。",
     note2: "下载 CLI →",
-    total_obf: "总混淆次数",
-    total_dl: "下载次数"
+    total_obf: "总混淆次数", total_dl: "下载次数",
+    chars: "字符", lines: "行", copied: "已复制！", copy_fail: "复制失败",
+    err_no_input: "请先输入代码。", err_engine: "引擎仍在加载…",
+    load_failed: "WASM 加载失败",
+    uploaded: "已加载"
   }
 };
-let lang = 'en';
-let curTier = 'max';
 
-/* ── sliding thumb mover (transform-based, GPU smooth) ── */
+let lang = (typeof localStorage !== 'undefined' && localStorage.getItem('csa_lang')) || 'en';
+let curTier = 'max';
+let ready = false;
+
+const t = k => I18N[lang][k] || k;
+const $ = s => document.querySelector(s);
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (I18N[lang][k] !== undefined) el.textContent = I18N[lang][k];
+  });
+  document.querySelectorAll('#lang-track button').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === lang));
+  moveThumb('lang-track', 'lang-thumb', 'data-lang', lang);
+  moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier);
+  updateCounters();
+}
+
+/* ── sliding thumb ── */
 function moveThumb(trackId, thumbId, attr, val) {
   const track = document.getElementById(trackId);
   const thumb = document.getElementById(thumbId);
+  if (!track || !thumb) return;
   const opts = track.querySelectorAll('button');
   let target = null;
   opts.forEach(o => { if (o.getAttribute(attr) === val) target = o; });
@@ -405,76 +675,182 @@ function moveThumb(trackId, thumbId, attr, val) {
   thumb.style.width = target.offsetWidth + 'px';
   thumb.style.transform = 'translateX(' + target.offsetLeft + 'px)';
 }
-function moveLangThumb() { moveThumb('lang-track', 'lang-thumb', 'data-lang', lang); }
-function moveTierThumb() { moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier); }
 
-function setLang(l) {
-  lang = l;
-  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (I18N[l][k]) el.textContent = I18N[l][k]; });
-  document.querySelectorAll('#lang-track .opt').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === l));
-  moveLangThumb();
-}
-document.querySelectorAll('#lang-track .opt').forEach(b => b.addEventListener('click', () => setLang(b.getAttribute('data-lang'))));
+document.querySelectorAll('#lang-track button').forEach(b => b.addEventListener('click', () => {
+  lang = b.getAttribute('data-lang');
+  if (typeof localStorage !== 'undefined') localStorage.setItem('csa_lang', lang);
+  applyI18n();
+  updateStatus();
+}));
 
 document.querySelectorAll('#tier-switch button').forEach(b => b.addEventListener('click', () => {
   curTier = b.getAttribute('data-tier');
   document.querySelectorAll('#tier-switch button').forEach(x => x.classList.toggle('active', x === b));
-  moveTierThumb();
+  moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier);
 }));
 
-/* initial position after layout + on resize */
-requestAnimationFrame(() => { moveLangThumb(); moveTierThumb(); });
-window.addEventListener('resize', () => { moveLangThumb(); moveTierThumb(); });
-window.addEventListener('load', () => { moveLangThumb(); moveTierThumb(); });
+/* ── editor line numbers + counters ── */
+const editors = {};
+function setupEditor(textareaId, gutterId, counterId) {
+  const ta = document.getElementById(textareaId);
+  const gutter = document.getElementById(gutterId);
+  const counter = document.getElementById(counterId);
+  if (!ta || !gutter) return;
+  const update = () => {
+    const lines = ta.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= lines; i++) html += i + '\n';
+    gutter.textContent = html;
+    gutter.scrollTop = ta.scrollTop;
+    if (counter) counter.textContent = ta.value.length + ' ' + t('chars') + ' · ' + lines + ' ' + t('lines');
+  };
+  ta.addEventListener('scroll', () => { gutter.scrollTop = ta.scrollTop; });
+  ta.addEventListener('input', update);
+  update();
+  editors[textareaId] = update;
+}
+function updateCounters() {
+  if (editors.input) editors.input();
+  if (editors.output) editors.output();
+}
 
+/* ── status pill ── */
+function setStatus(state, msg) {
+  const pill = $('#status-pill');
+  const txt = $('#status-text');
+  pill.className = 'status-pill' + (state ? ' ' + state : '');
+  if (msg !== undefined) txt.textContent = msg;
+}
+function updateStatus() {
+  if (ready) setStatus('ready', t('status_ready'));
+  else setStatus('', t('status_loading'));
+}
+
+/* ═══════════════════════════ WASM ENGINE ═══════════════════════════ */
 const go = new Go();
-let ready = false;
-function pollReady() { if (typeof csaObfuscate === 'function') { ready = true; document.getElementById("status").innerHTML = '<span style="color:#059669;">Ready</span>'; return; } setTimeout(pollReady, 100); }
-function instantiate(bytes) { return WebAssembly.instantiate(bytes, go.importObject).then(result => { go.run(result.instance); pollReady(); }); }
-WebAssembly.instantiateStreaming(fetch("./csa.wasm"), go.importObject)
+function pollReady() {
+  if (typeof csaObfuscate === 'function') {
+    ready = true;
+    $('#btn').disabled = false;
+    updateStatus();
+    return;
+  }
+  setTimeout(pollReady, 100);
+}
+function instantiate(bytes) {
+  return WebAssembly.instantiate(bytes, go.importObject).then(result => { go.run(result.instance); pollReady(); });
+}
+WebAssembly.instantiateStreaming(fetch('./csa.wasm'), go.importObject)
   .then(result => { go.run(result.instance); pollReady(); })
-  .catch(() => fetch("./csa.wasm").then(r => r.arrayBuffer()).then(instantiate))
-  .catch(e => { document.getElementById("status").innerHTML = '<span class="loading">WASM load failed: ' + e + '</span>'; });
-document.getElementById("btn").addEventListener("click", () => {
-  if (!ready) { document.getElementById("status").innerHTML = '<span class="loading">Loading…</span>'; return; }
-  const src = document.getElementById("input").value;
-  const tier = curTier;
-  const status = document.getElementById("status");
-  status.innerHTML = '<span class="loading">' + (lang === 'zh' ? '混淆中…' : 'Obfuscating…') + '</span>';
+  .catch(() => fetch('./csa.wasm').then(r => r.arrayBuffer()).then(instantiate))
+  .catch(e => { setStatus('error', t('load_failed') + ': ' + e); });
+
+/* ═══════════════════════════ OBFUSCATE ═══════════════════════════ */
+function obfuscate() {
+  if (!ready) { setStatus('', t('status_loading')); return; }
+  const src = $('#input').value;
+  if (!src.trim()) { setStatus('error', t('err_no_input')); return; }
+
+  $('#btn').disabled = true;
+  setStatus('', t('status_obfuscating'));
+
   setTimeout(() => {
     try {
-      const out = csaObfuscate(src, tier);
-      if (out.error) { status.innerHTML = '<span style="color:#e11d48;">' + out.error + '</span>'; return; }
-      document.getElementById("output").value = out.result;
-      document.getElementById("output").style.color = '#16244d';
+      const out = csaObfuscate(src, curTier);
+      if (out.error) { setStatus('error', out.error); $('#btn').disabled = false; return; }
+
+      const output = $('#output');
+      output.value = out.result;
+
       const leak = (out.result.match(/loadstring|print|hello|world/g) || []).length;
-      document.getElementById("stat-tier").textContent = out.tier;
-      document.getElementById("stat-size").textContent = out.outputBytes + " bytes";
-      document.getElementById("stat-ratio").textContent = (out.outputBytes / out.inputBytes).toFixed(1) + "x";
-      document.getElementById("stat-time").textContent = out.durationMs + " ms";
-      document.getElementById("stat-leak").textContent = leak;
-      document.getElementById("stats").style.display = 'flex';
-      document.getElementById("download").disabled = false;
-      status.innerHTML = '<span style="color:#059669;font-weight:700;">' + (lang === 'zh' ? '✓ 完成' : '✓ Done') + '</span>';
-      try { fetch('https://api.csa.cua123.ccwu.cc/stats', { method: 'POST' }).then(r=>r.json()).then(d=>{ if(d.obfuscations){ document.getElementById('total-count').textContent = d.obfuscations; } }); } catch (e) {}
-    } catch (e) { status.innerHTML = '<span style="color:#e11d48;">' + e + '</span>'; }
+      $('#stat-tier').textContent = out.tier;
+      $('#stat-size').textContent = out.outputBytes + ' B';
+      $('#stat-ratio').textContent = (out.outputBytes / Math.max(1, out.inputBytes)).toFixed(1) + '×';
+      $('#stat-time').textContent = out.durationMs + ' ms';
+      const leakEl = $('#stat-leak');
+      leakEl.textContent = leak;
+      leakEl.className = 'v' + (leak === 0 ? ' ok' : ' warn');
+      $('#stats').style.display = 'grid';
+      $('#download').disabled = false;
+      $('#copy').disabled = false;
+      setStatus('ready', '✓ ' + t('status_done'));
+      if (editors.output) editors.output();
+
+      try { fetch('https://api.csa.cua123.ccwu.cc/stats', { method: 'POST' }).then(r => r.json()).then(d => { if (d.obfuscations) $('#total-count').textContent = d.obfuscations; }); } catch (e) {}
+    } catch (e) {
+      setStatus('error', e && e.message ? e.message : t('status_error'));
+    } finally {
+      $('#btn').disabled = false;
+    }
   }, 50);
+}
+$('#btn').addEventListener('click', obfuscate);
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); obfuscate(); }
 });
-const fileInput = document.getElementById("fileInput");
-document.getElementById("upload").addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", () => {
+
+/* ═══════════════════════════ UPLOAD / DOWNLOAD / COPY ═══════════════════════════ */
+const fileInput = $('#fileInput');
+$('#upload').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
   const f = fileInput.files[0]; if (!f) return;
   const reader = new FileReader();
-  reader.onload = () => { document.getElementById("input").value = reader.result; document.getElementById("status").innerHTML = '<span style="color:#4f46e5;">' + (lang === 'zh' ? '已加载 ' : 'Loaded ') + f.name + '</span>'; };
+  reader.onload = () => {
+    $('#input').value = reader.result;
+    if (editors.input) editors.input();
+    setStatus('', t('uploaded') + ' ' + f.name);
+  };
   reader.readAsText(f);
 });
-document.getElementById("download").addEventListener("click", () => {
-  const content = document.getElementById("output").value; if (!content) return;
+
+$('#download').addEventListener('click', () => {
+  const content = $('#output').value; if (!content) return;
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'obfuscated.lua'; a.click();
+  URL.revokeObjectURL(url);
 });
-try { fetch('https://api.csa.cua123.ccwu.cc/stats').then(r=>r.json()).then(d=>{ if(d.obfuscations !== undefined){ document.getElementById('total-count').textContent = d.obfuscations; } if(d.downloads !== undefined){ document.getElementById('total-downloads').textContent = d.downloads; } }); } catch (e) {}
+
+$('#copy').addEventListener('click', async () => {
+  const content = $('#output').value; if (!content) return;
+  const btn = $('#copy');
+  try {
+    await navigator.clipboard.writeText(content);
+    btn.textContent = '✓ ' + t('copied');
+  } catch (e) {
+    const ta = $('#output');
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); btn.textContent = '✓ ' + t('copied'); }
+    catch (e2) { btn.textContent = t('copy_fail'); }
+  }
+  setTimeout(() => { btn.textContent = t('btn_copy'); }, 1800);
+});
+
+/* ═══════════════════════════ STATS / REVEAL ═══════════════════════════ */
+try {
+  fetch('https://api.csa.cua123.ccwu.cc/stats')
+    .then(r => r.json())
+    .then(d => {
+      if (d.obfuscations !== undefined) $('#total-count').textContent = d.obfuscations;
+      if (d.downloads !== undefined) $('#total-downloads').textContent = d.downloads;
+    });
+} catch (e) {}
+
+const io = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+}, { threshold: 0.08 }) : null;
+document.querySelectorAll('.reveal').forEach(el => { if (io) io.observe(el); else el.classList.add('in'); });
+
+/* ── initial layout ── */
+requestAnimationFrame(() => { moveThumb('lang-track', 'lang-thumb', 'data-lang', lang); moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier); });
+window.addEventListener('resize', () => { moveThumb('lang-track', 'lang-thumb', 'data-lang', lang); moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier); });
+window.addEventListener('load', () => { moveThumb('lang-track', 'lang-thumb', 'data-lang', lang); moveThumb('tier-switch', 'tier-thumb', 'data-tier', curTier); });
+
+setupEditor('input', 'in-gutter', 'in-count');
+setupEditor('output', 'out-gutter', 'out-count');
+applyI18n();
+updateStatus();
 </script>
 </body>
 </html>
